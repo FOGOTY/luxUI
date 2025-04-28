@@ -1,4 +1,4 @@
---[[
+--[=[
     LuxUI - Enhanced Animated UI Library for Roblox
     Enhanced Features:
     - Smoother animations with spring physics
@@ -7,7 +7,7 @@
     - Improved error handling
     - Gradient accents
     - Theme support
-]]
+]=]
 
 local LuxUI = {}
 LuxUI.__index = LuxUI
@@ -41,7 +41,7 @@ local animations = {
 		Quint = Enum.EasingStyle.Quint,
 		Bounce = Enum.EasingStyle.Bounce,
 		Elastic = Enum.EasingStyle.Elastic,
-		Spring = Enum.EasingStyle.Quad -- Using Quad for spring-like effect
+		Spring = Enum.EasingStyle.Quad
 	},
 	EasingDirections = {
 		In = Enum.EasingDirection.In,
@@ -81,7 +81,6 @@ local themes = {
 -- Create base UI function
 function LuxUI.new(options)
 	options = options or {}
-
 	local self = setmetatable({}, LuxUI)
 
 	-- Apply configuration
@@ -90,19 +89,25 @@ function LuxUI.new(options)
 	self.AnimationSpeed = options.AnimationSpeed or 0.25
 	self.Theme = options.Theme or config.Theme
 	self.Colors = themes[self.Theme] or themes.Dark
-
-	-- Create flags table
 	self.Flags = {}
-
-	-- Tween cleanup
 	self.ActiveTweens = {}
 
 	-- Create main UI elements
-	self:CreateUI()
+	local success, err = pcall(function()
+		self:CreateUI()
+	end)
+	if not success then
+		warn("Failed to create UI: " .. tostring(err))
+	end
 
 	-- Load configuration if enabled
 	if self.ConfigurationSaving.Enabled then
-		self:LoadConfiguration()
+		local success, err = pcall(function()
+			self:LoadConfiguration()
+		end)
+		if not success then
+			warn("Failed to load configuration: " .. tostring(err))
+		end
 	end
 
 	return self
@@ -110,29 +115,36 @@ end
 
 -- UI Creation Functions
 function LuxUI:CreateUI()
-	-- Create ScreenGui
 	self.ScreenGui = Instance.new("ScreenGui")
 	self.ScreenGui.Name = "LuxUI_" .. HttpService:GenerateGUID(false)
 	self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 	self.ScreenGui.ResetOnSpawn = false
 	self.ScreenGui.Parent = game:GetService("CoreGui")
 
-	-- Create watermark
-	self:CreateWatermark()
+	-- Create watermark and notification holder
+	local success, err = pcall(function()
+		self:CreateWatermark()
+		self.NotificationHolder = Instance.new("Frame")
+		self.NotificationHolder.Name = "NotificationHolder"
+		self.NotificationHolder.BackgroundTransparency = 1
+		self.NotificationHolder.Size = UDim2.new(1, 0, 1, 0)
+		self.NotificationHolder.Parent = self.ScreenGui
+	end)
+	if not success then
+		warn("Failed to create UI components: " .. tostring(err))
+	end
 
 	-- Create main window
-	self.MainWindow = self:CreateWindow({
-		Title = self.ScriptName,
-		Size = UDim2.new(0, 550, 0, 450),
-		Position = UDim2.new(0.5, -275, 0.5, -225)
-	})
-
-	-- Create notification holder
-	self.NotificationHolder = Instance.new("Frame")
-	self.NotificationHolder.Name = "NotificationHolder"
-	self.NotificationHolder.BackgroundTransparency = 1
-	self.NotificationHolder.Size = UDim2.new(1, 0, 1, 0)
-	self.NotificationHolder.Parent = self.ScreenGui
+	local success, err = pcall(function()
+		self.MainWindow = self:CreateWindow({
+			Title = self.ScriptName,
+			Size = UDim2.new(0, 550, 0, 450),
+			Position = UDim2.new(0.5, -275, 0.5, -225)
+		})
+	end)
+	if not success then
+		warn("Failed to create main window: " .. tostring(err))
+	end
 end
 
 function LuxUI:CreateWatermark()
@@ -194,14 +206,19 @@ function LuxUI:CreateWatermark()
 	local lastTick = tick()
 	local frames = 0
 	local connection
-	connection = RunService.Heartbeat:Connect(function()
-		frames = frames + 1
-		if tick() - lastTick >= 1 then
-			fpsLabel.Text = string.format("%d FPS", math.floor(frames))
-			frames = 0
-			lastTick = tick()
-		end
+	local success, err = pcall(function()
+		connection = RunService.Heartbeat:Connect(function()
+			frames = frames + 1
+			if tick() - lastTick >= 1 then
+				fpsLabel.Text = string.format("%d FPS", math.floor(frames))
+				frames = 0
+				lastTick = tick()
+			end
+		end)
 	end)
+	if not success then
+		warn("Failed to set up FPS counter: " .. tostring(err))
+	end
 
 	-- Cleanup connection
 	self.Watermark.AncestryChanged:Connect(function()
@@ -213,12 +230,16 @@ function LuxUI:CreateWatermark()
 	end)
 
 	-- Make draggable
-	self:MakeDraggable(self.Watermark)
+	local success, err = pcall(function()
+		self:MakeDraggable(self.Watermark)
+	end)
+	if not success then
+		warn("Failed to make watermark draggable: " .. tostring(err))
+	end
 end
 
 function LuxUI:CreateWindow(options)
 	options = options or {}
-
 	local window = {}
 
 	-- Create main frame
@@ -330,7 +351,12 @@ function LuxUI:CreateWindow(options)
 	contentCorner.Parent = window.Content
 
 	-- Make draggable
-	self:MakeDraggable(window.Main, window.TitleBar)
+	local success, err = pcall(function()
+		self:MakeDraggable(window.Main, window.TitleBar)
+	end)
+	if not success then
+		warn("Failed to make window draggable: " .. tostring(err))
+	end
 
 	-- Window methods
 	function window:AddTab(name)
@@ -341,7 +367,7 @@ function LuxUI:CreateWindow(options)
 		tab.Button.Name = name
 		tab.Button.Text = name
 		tab.Button.Font = Enum.Font.GothamSemibold
-		tab.Button.TextColor3 = Color3.fromRGB(255,255,255)
+		tab.Button.TextColor3 = self.Colors.Text
 		tab.Button.TextSize = 15
 		tab.Button.BackgroundColor3 = self.Colors.Main
 		tab.Button.BackgroundTransparency = 0.2
@@ -369,23 +395,20 @@ function LuxUI:CreateWindow(options)
 		local tabList = Instance.new("UIListLayout")
 		tabList.Name = "TabList"
 		tabList.Padding = UDim.new(0, 12)
-		tabList.SortOrder = Enum.SortOrder.LayoutOrder
 		tabList.Parent = tab.Content
 
 		-- Tab selection logic
 		tab.Button.MouseButton1Click:Connect(function()
 			for _, otherTab in pairs(window.Tabs or {}) do
-				if otherTab.Content then
+				if otherTab.Content and otherTab.Button then
 					otherTab.Content.Visible = false
-					if otherTab.Button then
-						self:Tween(otherTab.Button, {
-							BackgroundColor3 = self.Colors.Main,
-							BackgroundTransparency = 0.2
-						}, 0.2)
-						local otherGradient = otherTab.Button:FindFirstChild("UIGradient")
-						if otherGradient then
-							otherGradient.Enabled = false
-						end
+					self:Tween(otherTab.Button, {
+						BackgroundColor3 = self.Colors.Main,
+						BackgroundTransparency = 0.2
+					}, 0.2)
+					local otherGradient = otherTab.Button:FindFirstChild("UIGradient")
+					if otherGradient then
+						otherGradient.Enabled = false
 					end
 				end
 			end
@@ -404,12 +427,11 @@ function LuxUI:CreateWindow(options)
 		function tab:AddSection(title)
 			local section = {}
 
-			-- Create section
 			section.Main = Instance.new("Frame")
 			section.Main.Name = title
 			section.Main.BackgroundColor3 = self.Colors.Secondary
 			section.Main.BackgroundTransparency = 0.2
-			section.Main.Size = UDim2.new(1, -20, 0, 0)
+			section.Main.Size = UDim2.new(1, {#content} -20, 0, 0)
 			section.Main.Position = UDim2.new(0, 10, 0, 10)
 			section.Main.Parent = tab.Content
 
@@ -423,7 +445,6 @@ function LuxUI:CreateWindow(options)
 			stroke.Thickness = 1.5
 			stroke.Parent = section.Main
 
-			-- Section title
 			section.Title = Instance.new("TextLabel")
 			section.Title.Name = "Title"
 			section.Title.Text = title
@@ -436,7 +457,6 @@ function LuxUI:CreateWindow(options)
 			section.Title.TextXAlignment = Enum.TextXAlignment.Left
 			section.Title.Parent = section.Main
 
-			-- Content layout
 			section.Content = Instance.new("Frame")
 			section.Content.Name = "Content"
 			section.Content.BackgroundTransparency = 1
@@ -450,17 +470,14 @@ function LuxUI:CreateWindow(options)
 			listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			listLayout.Parent = section.Content
 
-			-- Auto-size section
 			listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 				if section.Main then
 					section.Main.Size = UDim2.new(1, -20, 0, listLayout.AbsoluteContentSize.Y + 60)
 				end
 			end)
 
-			-- Section methods
 			function section:AddButton(options)
 				options = options or {}
-
 				local button = Instance.new("TextButton")
 				button.Name = options.Name or "Button"
 				button.Text = options.Name or "Button"
@@ -489,7 +506,6 @@ function LuxUI:CreateWindow(options)
 				gradient.Enabled = false
 				gradient.Parent = button
 
-				-- Button animation
 				button.MouseEnter:Connect(function()
 					if button then
 						self:Tween(button, {
@@ -512,7 +528,10 @@ function LuxUI:CreateWindow(options)
 
 				button.MouseButton1Click:Connect(function()
 					if options.Callback then
-						task.spawn(options.Callback)
+						local success, err = pcall(options.Callback)
+						if not success then
+							warn("Button callback error: " .. tostring(err))
+						end
 					end
 				end)
 
@@ -521,11 +540,9 @@ function LuxUI:CreateWindow(options)
 
 			function section:AddToggle(options)
 				options = options or {}
-
 				local toggle = {}
 				toggle.Value = options.Default or false
 
-				-- Create toggle frame
 				toggle.Main = Instance.new("Frame")
 				toggle.Main.Name = options.Name or "Toggle"
 				toggle.Main.BackgroundTransparency = 1
@@ -533,7 +550,6 @@ function LuxUI:CreateWindow(options)
 				toggle.Main.Position = UDim2.new(0, 10, 0, 0)
 				toggle.Main.Parent = section.Content
 
-				-- Toggle label
 				toggle.Label = Instance.new("TextLabel")
 				toggle.Label.Name = "Label"
 				toggle.Label.Text = options.Name or "Toggle"
@@ -546,7 +562,6 @@ function LuxUI:CreateWindow(options)
 				toggle.Label.TextXAlignment = Enum.TextXAlignment.Left
 				toggle.Label.Parent = toggle.Main
 
-				-- Toggle button
 				toggle.Button = Instance.new("TextButton")
 				toggle.Button.Name = "Button"
 				toggle.Button.Text = ""
@@ -567,7 +582,6 @@ function LuxUI:CreateWindow(options)
 				stroke.Thickness = 1.5
 				stroke.Parent = toggle.Button
 
-				-- Toggle indicator
 				toggle.Indicator = Instance.new("Frame")
 				toggle.Indicator.Name = "Indicator"
 				toggle.Indicator.BackgroundColor3 = self.Colors.Text
@@ -579,10 +593,8 @@ function LuxUI:CreateWindow(options)
 				indicatorCorner.CornerRadius = UDim.new(0, 12)
 				indicatorCorner.Parent = toggle.Indicator
 
-				-- Update appearance
 				local function update()
 					if not (toggle.Button and toggle.Indicator) then return end
-					
 					if toggle.Value then
 						self:Tween(toggle.Indicator, {Position = UDim2.new(1, -26, 0.5, -12)}, 0.2)
 						self:Tween(toggle.Button, {
@@ -600,24 +612,24 @@ function LuxUI:CreateWindow(options)
 
 				update()
 
-				-- Toggle click
 				toggle.Button.MouseButton1Click:Connect(function()
 					toggle.Value = not toggle.Value
 					update()
 
 					if options.Callback then
-						task.spawn(function()
+						local success, err = pcall(function()
 							options.Callback(toggle.Value)
 						end)
+						if not success then
+							warn("Toggle callback error: " .. tostring(err))
+						end
 					end
 
-					-- Save to flags if flag name provided
 					if options.Flag then
 						self.Flags[options.Flag] = toggle.Value
 					end
 				end)
 
-				-- Add to flags
 				if options.Flag then
 					self.Flags[options.Flag] = toggle.Value
 				end
@@ -627,14 +639,12 @@ function LuxUI:CreateWindow(options)
 
 			function section:AddSlider(options)
 				options = options or {}
-
 				local slider = {}
 				slider.Value = options.Default or options.Min or 0
 				slider.Min = options.Min or 0
 				slider.Max = options.Max or 100
 				slider.Precision = options.Precision or 1
 
-				-- Create slider frame
 				slider.Main = Instance.new("Frame")
 				slider.Main.Name = options.Name or "Slider"
 				slider.Main.BackgroundTransparency = 1
@@ -642,7 +652,6 @@ function LuxUI:CreateWindow(options)
 				slider.Main.Position = UDim2.new(0, 10, 0, 0)
 				slider.Main.Parent = section.Content
 
-				-- Slider label
 				slider.Label = Instance.new("TextLabel")
 				slider.Label.Name = "Label"
 				slider.Label.Text = options.Name or "Slider"
@@ -655,7 +664,6 @@ function LuxUI:CreateWindow(options)
 				slider.Label.TextXAlignment = Enum.TextXAlignment.Left
 				slider.Label.Parent = slider.Main
 
-				-- Slider value display
 				slider.ValueLabel = Instance.new("TextLabel")
 				slider.ValueLabel.Name = "ValueLabel"
 				slider.ValueLabel.Text = tostring(slider.Value)
@@ -668,7 +676,6 @@ function LuxUI:CreateWindow(options)
 				slider.ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
 				slider.ValueLabel.Parent = slider.Main
 
-				-- Slider track
 				slider.Track = Instance.new("Frame")
 				slider.Track.Name = "Track"
 				slider.Track.BackgroundColor3 = self.Colors.Main
@@ -687,7 +694,6 @@ function LuxUI:CreateWindow(options)
 				trackStroke.Thickness = 1.5
 				trackStroke.Parent = slider.Track
 
-				-- Slider fill
 				slider.Fill = Instance.new("Frame")
 				slider.Fill.Name = "Fill"
 				slider.Fill.BackgroundColor3 = self.Colors.Accent
@@ -703,7 +709,6 @@ function LuxUI:CreateWindow(options)
 				fillGradient.Color = self.Colors.AccentGradient
 				fillGradient.Parent = slider.Fill
 
-				-- Slider thumb
 				slider.Thumb = Instance.new("Frame")
 				slider.Thumb.Name = "Thumb"
 				slider.Thumb.BackgroundColor3 = self.Colors.Text
@@ -715,40 +720,35 @@ function LuxUI:CreateWindow(options)
 				thumbCorner.CornerRadius = UDim.new(0, 8)
 				thumbCorner.Parent = slider.Thumb
 
-				-- Update slider
 				local function update()
 					if not (slider.Fill and slider.Thumb and slider.ValueLabel) then return end
-					
 					local percent = (slider.Value - slider.Min) / (slider.Max - slider.Min)
 					slider.Fill.Size = UDim2.new(percent, 0, 1, 0)
 					slider.Thumb.Position = UDim2.new(percent, -8, 0.5, -8)
 					slider.ValueLabel.Text = string.format("%.2f", slider.Value)
 
 					if options.Callback then
-						task.spawn(function()
+						local success, err = pcall(function()
 							options.Callback(slider.Value)
 						end)
+						if not success then
+							warn("Slider callback error: " .. tostring(err))
+						end
 					end
 
-					-- Save to flags if flag name provided
 					if options.Flag then
 						self.Flags[options.Flag] = slider.Value
 					end
 				end
 
-				-- Initialize
 				update()
 
-				-- Slider dragging
 				local dragging = false
-
 				slider.Track.InputBegan:Connect(function(input)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 then
 						dragging = true
-
 						local percent = (input.Position.X - slider.Track.AbsolutePosition.X) / slider.Track.AbsoluteSize.X
 						percent = math.clamp(percent, 0, 1)
-
 						slider.Value = math.floor((slider.Min + (slider.Max - slider.Min) * percent) * (10 ^ slider.Precision)) / (10 ^ slider.Precision)
 						update()
 					end
@@ -764,13 +764,11 @@ function LuxUI:CreateWindow(options)
 					if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 						local percent = (input.Position.X - slider.Track.AbsolutePosition.X) / slider.Track.AbsoluteSize.X
 						percent = math.clamp(percent, 0, 1)
-
 						slider.Value = math.floor((slider.Min + (slider.Max - slider.Min) * percent) * (10 ^ slider.Precision)) / (10 ^ slider.Precision)
 						update()
 					end
 				end)
 
-				-- Add to flags
 				if options.Flag then
 					self.Flags[options.Flag] = slider.Value
 				end
@@ -780,13 +778,11 @@ function LuxUI:CreateWindow(options)
 
 			function section:AddDropdown(options)
 				options = options or {}
-
 				local dropdown = {}
 				dropdown.Value = options.Default or nil
 				dropdown.Options = options.Options or {}
 				dropdown.Open = false
 
-				-- Create dropdown frame
 				dropdown.Main = Instance.new("Frame")
 				dropdown.Main.Name = options.Name or "Dropdown"
 				dropdown.Main.BackgroundTransparency = 1
@@ -795,7 +791,6 @@ function LuxUI:CreateWindow(options)
 				dropdown.Main.ClipsDescendants = true
 				dropdown.Main.Parent = section.Content
 
-				-- Dropdown button
 				dropdown.Button = Instance.new("TextButton")
 				dropdown.Button.Name = "Button"
 				dropdown.Button.Text = ""
@@ -816,7 +811,6 @@ function LuxUI:CreateWindow(options)
 				buttonStroke.Thickness = 1.5
 				buttonStroke.Parent = dropdown.Button
 
-				-- Dropdown label
 				dropdown.Label = Instance.new("TextLabel")
 				dropdown.Label.Name = "Label"
 				dropdown.Label.Text = options.Name or "Dropdown"
@@ -829,7 +823,6 @@ function LuxUI:CreateWindow(options)
 				dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
 				dropdown.Label.Parent = dropdown.Button
 
-				-- Dropdown value
 				dropdown.ValueLabel = Instance.new("TextLabel")
 				dropdown.ValueLabel.Name = "ValueLabel"
 				dropdown.ValueLabel.Text = dropdown.Value or "None"
@@ -842,7 +835,6 @@ function LuxUI:CreateWindow(options)
 				dropdown.ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
 				dropdown.ValueLabel.Parent = dropdown.Button
 
-				-- Dropdown icon
 				dropdown.Icon = Instance.new("ImageLabel")
 				dropdown.Icon.Name = "Icon"
 				dropdown.Icon.Image = "rbxassetid://6031094667"
@@ -852,7 +844,6 @@ function LuxUI:CreateWindow(options)
 				dropdown.Icon.Position = UDim2.new(1, -30, 0.5, -11)
 				dropdown.Icon.Parent = dropdown.Button
 
-				-- Dropdown list
 				dropdown.List = Instance.new("Frame")
 				dropdown.List.Name = "List"
 				dropdown.List.BackgroundColor3 = self.Colors.Secondary
@@ -878,16 +869,13 @@ function LuxUI:CreateWindow(options)
 				listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 				listLayout.Parent = dropdown.List
 
-				-- Create options
 				local function createOptions()
-					-- Clear existing options
 					for _, child in ipairs(dropdown.List:GetChildren()) do
 						if child:IsA("TextButton") then
 							child:Destroy()
 						end
 					end
 
-					-- Add new options
 					for _, option in ipairs(dropdown.Options) do
 						local optionButton = Instance.new("TextButton")
 						optionButton.Name = option
@@ -912,7 +900,6 @@ function LuxUI:CreateWindow(options)
 						optionGradient.Enabled = false
 						optionGradient.Parent = optionButton
 
-						-- Hover effect
 						optionButton.MouseEnter:Connect(function()
 							if optionButton then
 								self:Tween(optionButton, {
@@ -933,10 +920,8 @@ function LuxUI:CreateWindow(options)
 							end
 						end)
 
-						-- Select option
 						optionButton.MouseButton1Click:Connect(function()
 							if not dropdown.List then return end
-							
 							dropdown.Value = option
 							dropdown.ValueLabel.Text = option
 							dropdown.Open = false
@@ -950,30 +935,28 @@ function LuxUI:CreateWindow(options)
 							self:Tween(dropdown.Icon, {Rotation = 0}, 0.2)
 
 							if options.Callback then
-								task.spawn(function()
+								local success, err = pcall(function()
 									options.Callback(option)
 								end)
+								if not success then
+									warn("Dropdown callback error: " .. tostring(err))
+								end
 							end
 
-							-- Save to flags if flag name provided
 							if options.Flag then
 								self.Flags[options.Flag] = option
 							end
 						end)
 					end
 
-					-- Update list size
 					local listHeight = #dropdown.Options * 43 + 8
 					dropdown.List.Size = UDim2.new(1, 0, 0, listHeight)
 				end
 
-				-- Initialize options
 				createOptions()
 
-				-- Toggle dropdown
 				dropdown.Button.MouseButton1Click:Connect(function()
 					if not (dropdown.List and dropdown.Icon) then return end
-					
 					dropdown.Open = not dropdown.Open
 
 					if dropdown.Open then
@@ -990,7 +973,6 @@ function LuxUI:CreateWindow(options)
 					end
 				end)
 
-				-- Close dropdown when clicking outside
 				local clickConnection
 				clickConnection = UserInputService.InputBegan:Connect(function(input)
 					if dropdown.Open and input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1013,7 +995,6 @@ function LuxUI:CreateWindow(options)
 					end
 				end)
 
-				-- Cleanup
 				dropdown.Main.AncestryChanged:Connect(function()
 					if not dropdown.Main:IsDescendantOf(game) then
 						if clickConnection then
@@ -1022,12 +1003,10 @@ function LuxUI:CreateWindow(options)
 					end
 				end)
 
-				-- Add to flags
 				if options.Flag then
 					self.Flags[options.Flag] = dropdown.Value
 				end
 
-				-- Dropdown methods
 				function dropdown:SetOptions(newOptions)
 					dropdown.Options = newOptions
 					createOptions()
@@ -1039,12 +1018,14 @@ function LuxUI:CreateWindow(options)
 						dropdown.ValueLabel.Text = newValue
 
 						if options.Callback then
-							task.spawn(function()
+							local success, err = pcall(function()
 								options.Callback(newValue)
 							end)
+							if not success then
+								warn("Dropdown set value error: " .. tostring(err))
+							end
 						end
 
-						-- Save to flags if flag name provided
 						if options.Flag then
 							self.Flags[options.Flag] = newValue
 						end
@@ -1056,12 +1037,10 @@ function LuxUI:CreateWindow(options)
 
 			function section:AddKeybind(options)
 				options = options or {}
-
 				local keybind = {}
 				keybind.Value = options.Default or Enum.KeyCode.Unknown
 				keybind.Listening = false
 
-				-- Create keybind frame
 				keybind.Main = Instance.new("Frame")
 				keybind.Main.Name = options.Name or "Keybind"
 				keybind.Main.BackgroundTransparency = 1
@@ -1069,7 +1048,6 @@ function LuxUI:CreateWindow(options)
 				keybind.Main.Position = UDim2.new(0, 10, 0, 0)
 				keybind.Main.Parent = section.Content
 
-				-- Keybind label
 				keybind.Label = Instance.new("TextLabel")
 				keybind.Label.Name = "Label"
 				keybind.Label.Text = options.Name or "Keybind"
@@ -1082,7 +1060,6 @@ function LuxUI:CreateWindow(options)
 				keybind.Label.TextXAlignment = Enum.TextXAlignment.Left
 				keybind.Label.Parent = keybind.Main
 
-				-- Keybind button
 				keybind.Button = Instance.new("TextButton")
 				keybind.Button.Name = "Button"
 				keybind.Button.Text = keybind.Value.Name or "None"
@@ -1106,13 +1083,9 @@ function LuxUI:CreateWindow(options)
 				buttonStroke.Thickness = 1.5
 				buttonStroke.Parent = keybind.Button
 
-				-- Keybind input connection
 				local inputConnection
-
-				-- Toggle listening
 				local function toggleListening()
 					if not keybind.Button then return end
-					
 					keybind.Listening = not keybind.Listening
 
 					if keybind.Listening then
@@ -1134,12 +1107,14 @@ function LuxUI:CreateWindow(options)
 								}, 0.2)
 
 								if options.Callback then
-									task.spawn(function()
+									local success, err = pcall(function()
 										options.Callback(input.KeyCode)
 									end)
+									if not success then
+										warn("Keybind callback error: " .. tostring(err))
+									end
 								end
 
-								-- Save to flags if flag name provided
 								if options.Flag then
 									self.Flags[options.Flag] = input.KeyCode
 								end
@@ -1153,7 +1128,6 @@ function LuxUI:CreateWindow(options)
 						if inputConnection then
 							inputConnection:Disconnect()
 						end
-
 						keybind.Button.Text = keybind.Value.Name or "None"
 						self:Tween(keybind.Button, {
 							BackgroundColor3 = self.Colors.Main,
@@ -1162,10 +1136,8 @@ function LuxUI:CreateWindow(options)
 					end
 				end
 
-				-- Button click
 				keybind.Button.MouseButton1Click:Connect(toggleListening)
 
-				-- Cleanup
 				keybind.Main.AncestryChanged:Connect(function()
 					if not keybind.Main:IsDescendantOf(game) then
 						if inputConnection then
@@ -1174,25 +1146,24 @@ function LuxUI:CreateWindow(options)
 					end
 				end)
 
-				-- Add to flags
 				if options.Flag then
 					self.Flags[options.Flag] = keybind.Value
 				end
 
-				-- Keybind methods
 				function keybind:SetKey(newKey)
 					if not keybind.Button then return end
-					
 					keybind.Value = newKey
 					keybind.Button.Text = newKey.Name or "None"
 
 					if options.Callback then
-						task.spawn(function()
+						local success, err = pcall(function()
 							options.Callback(newKey)
 						end)
+						if not success then
+							warn("Keybind set key error: " .. tostring(err))
+						end
 					end
 
-					-- Save to flags if flag name provided
 					if options.Flag then
 						self.Flags[options.Flag] = newKey
 					end
@@ -1213,18 +1184,15 @@ function LuxUI:CreateWindow(options)
 				label.Position = UDim2.new(0, 10, 0, 0)
 				label.TextXAlignment = Enum.TextXAlignment.Left
 				label.Parent = section.Content
-
 				return label
 			end
 
 			return section
 		end
 
-		-- Store tabs
 		window.Tabs = window.Tabs or {}
 		table.insert(window.Tabs, tab)
 
-		-- Select first tab by default
 		if #window.Tabs == 1 and tab.Button and tab.Content then
 			tab.Button.BackgroundColor3 = self.Colors.Accent
 			tab.Button.BackgroundTransparency = 0
@@ -1244,8 +1212,6 @@ end
 -- Utility Functions
 function LuxUI:Tween(instance, properties, duration, callback)
 	if not instance then return end
-
-	-- Cancel existing tween if any
 	local tweenKey = tostring(instance)
 	if self.ActiveTweens[tweenKey] then
 		self.ActiveTweens[tweenKey]:Cancel()
@@ -1260,28 +1226,27 @@ function LuxUI:Tween(instance, properties, duration, callback)
 
 	local tween = TweenService:Create(instance, tweenInfo, properties)
 	self.ActiveTweens[tweenKey] = tween
-
 	tween:Play()
 
 	if callback then
 		tween.Completed:Connect(function()
 			self.ActiveTweens[tweenKey] = nil
-			task.spawn(callback)
+			local success, err = pcall(callback)
+			if not success then
+				warn("Tween callback error: " .. tostring(err))
+			end
 		end)
 	else
 		tween.Completed:Connect(function()
 			self.ActiveTweens[tweenKey] = nil
 		end)
 	end
-
 	return tween
 end
 
 function LuxUI:MakeDraggable(frame, handle)
 	if not (frame and handle) then return end
-	
 	handle = handle or frame
-
 	local dragging
 	local dragInput
 	local dragStart
@@ -1297,7 +1262,6 @@ function LuxUI:MakeDraggable(frame, handle)
 			dragging = true
 			dragStart = input.Position
 			startPos = frame.Position
-
 			input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
 					dragging = false
@@ -1319,7 +1283,6 @@ function LuxUI:MakeDraggable(frame, handle)
 		end
 	end)
 
-	-- Cleanup
 	frame.AncestryChanged:Connect(function()
 		if not frame:IsDescendantOf(game) then
 			if dragConnection then
@@ -1329,10 +1292,8 @@ function LuxUI:MakeDraggable(frame, handle)
 	end)
 end
 
--- Notification System
 function LuxUI:Notify(options)
 	options = options or {}
-
 	local notification = Instance.new("Frame")
 	notification.Name = "Notification"
 	notification.BackgroundColor3 = self.Colors.Main
@@ -1342,7 +1303,6 @@ function LuxUI:Notify(options)
 	notification.AnchorPoint = Vector2.new(1, 1)
 	notification.Parent = self.NotificationHolder
 
-	-- Add shadow
 	local shadow = Instance.new("ImageLabel")
 	shadow.Name = "Shadow"
 	shadow.Image = "rbxassetid://1316045217"
@@ -1390,21 +1350,17 @@ function LuxUI:Notify(options)
 	content.TextWrapped = true
 	content.Parent = notification
 
-	-- Calculate required height
 	local textHeight = math.ceil(content.TextBounds.Y / 15) * 15
 	content.Size = UDim2.new(1, -25, 0, textHeight)
-
 	local totalHeight = 65 + textHeight
 	notification.Size = UDim2.new(0, 320, 0, totalHeight)
 
-	-- Animate in
 	notification.Position = UDim2.new(1, -340, 1, totalHeight + 20)
 	self:Tween(notification, {
 		Position = UDim2.new(1, -340, 1, -20),
 		BackgroundTransparency = 0.2
 	}, 0.4)
 
-	-- Auto-close after duration
 	if options.Duration and options.Duration > 0 then
 		task.delay(options.Duration, function()
 			if notification then
@@ -1420,7 +1376,6 @@ function LuxUI:Notify(options)
 		end)
 	end
 
-	-- Close button
 	local close = Instance.new("TextButton")
 	close.Name = "Close"
 	close.Text = "×"
@@ -1448,30 +1403,24 @@ function LuxUI:Notify(options)
 	return notification
 end
 
--- Configuration System
 function LuxUI:SaveConfiguration()
 	if not self.ConfigurationSaving.Enabled then return end
-
-	-- Create folder if it doesn't exist
 	if not isfolder(self.ConfigurationSaving.FolderName) then
 		makefolder(self.ConfigurationSaving.FolderName)
 	end
 
-	-- Prepare data to save
 	local data = {
 		Flags = self.Flags,
 		WindowPosition = self.MainWindow.Main.Position,
 		Theme = self.Theme
 	}
 
-	-- Save to file with error handling
 	local success, err = pcall(function()
 		writefile(
 			self.ConfigurationSaving.FolderName .. "/" .. self.ConfigurationSaving.FileName,
 			HttpService:JSONEncode(data)
 		)
 	end)
-
 	if not success then
 		warn("Failed to save configuration: " .. tostring(err))
 	end
@@ -1479,7 +1428,6 @@ end
 
 function LuxUI:LoadConfiguration()
 	if not self.ConfigurationSaving.Enabled then return end
-
 	local filePath = self.ConfigurationSaving.FolderName .. "/" .. self.ConfigurationSaving.FileName
 
 	if isfile(filePath) then
@@ -1488,7 +1436,6 @@ function LuxUI:LoadConfiguration()
 		end)
 
 		if success and data then
-			-- Load flags
 			if data.Flags then
 				for flag, value in pairs(data.Flags) do
 					if self.Flags[flag] ~= nil then
@@ -1497,7 +1444,6 @@ function LuxUI:LoadConfiguration()
 				end
 			end
 
-			-- Load window position
 			if data.WindowPosition then
 				self.MainWindow.Main.Position = UDim2.new(
 					data.WindowPosition.X.Scale,
@@ -1507,7 +1453,6 @@ function LuxUI:LoadConfiguration()
 				)
 			end
 
-			-- Load theme
 			if data.Theme and themes[data.Theme] then
 				self.Theme = data.Theme
 				self.Colors = themes[data.Theme]
@@ -1516,115 +1461,39 @@ function LuxUI:LoadConfiguration()
 	end
 end
 
--- Keybind System
 function LuxUI:BindToKey(keyCode, callback)
 	local connection
-	connection = UserInputService.InputBegan:Connect(function(input)
-		if input.KeyCode == keyCode and not UserInputService:GetFocusedTextBox() then
-			task.spawn(callback)
-		end
+	local success, err = pcall(function()
+		connection = UserInputService.InputBegan:Connect(function(input)
+			if input.KeyCode == keyCode and not UserInputService:GetFocusedTextBox() then
+				local success, err = pcall(callback)
+				if not success then
+					warn("Keybind callback error: " .. tostring(err))
+				end
+			end
+		end)
 	end)
-
+	if not success then
+		warn("Failed to bind key: " .. tostring(err))
+	end
 	return connection
 end
 
--- Theme Switching
 function LuxUI:SetTheme(themeName)
 	if themes[themeName] then
 		self.Theme = themeName
 		self.Colors = themes[themeName]
-		
-		-- Update existing UI elements (implement as needed)
-		self:Notify({
-			Title = "Theme Changed",
-			Content = "Switched to " .. themeName .. " theme!",
-			Duration = 3
-		})
+		local success, err = pcall(function()
+			self:Notify({
+				Title = "Theme Changed",
+				Content = "Switched to " .. themeName .. " theme!",
+				Duration = 3
+			})
+		end)
+		if not success then
+			warn("Failed to notify theme change: " .. tostring(err))
+		end
 	end
 end
-
--- Example Usage:
---[[
-local LuxUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/.../LuxUI.lua"))()
-
-local ui = LuxUI.new({
-    ScriptName = "My Cool Script",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "MyScriptConfigs",
-        FileName = "config.json"
-    },
-    Theme = "Dark"
-})
-
-local window = ui.MainWindow
-local tab = window:AddTab("Main")
-
-local section = tab:AddSection("Main Section")
-
-section:AddButton({
-    Name = "Click Me!",
-    Callback = function()
-        ui:Notify({
-            Title = "Button Clicked",
-            Content = "You clicked the button!",
-            Duration = 3
-        })
-    end
-})
-
-section:AddToggle({
-    Name = "Enable Feature",
-    Default = false,
-    Callback = function(value)
-        print("Toggle:", value)
-    end,
-    Flag = "FeatureEnabled"
-})
-
-section:AddSlider({
-    Name = "Slider",
-    Min = 0,
-    Max = 100,
-    Default = 50,
-    Precision = 0,
-    Callback = function(value)
-        print("Slider:", value)
-    end,
-    Flag = "SliderValue"
-})
-
-section:AddDropdown({
-    Name = "Options",
-    Options = {"Option 1", "Option 2", "Option 3"},
-    Default = "Option 1",
-    Callback = function(value)
-        print("Dropdown:", value)
-    end,
-    Flag = "SelectedOption"
-})
-
-section:AddKeybind({
-    Name = "Toggle UI",
-    Default = Enum.KeyCode.RightShift,
-    Callback = function(key)
-        print("Keybind:", key)
-    end,
-    Flag = "ToggleKey"
-})
-
--- Theme switcher
-section:AddButton({
-    Name = "Switch to Light Theme",
-    Callback = function()
-        ui:SetTheme("Light")
-    end
-})
-
--- Save config when script ends
-game:GetService("UserInputService").WindowFocusReleased:Connect(function()
-    ui:SaveConfiguration()
-end)
-]]
 
 return LuxUI
