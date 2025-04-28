@@ -341,7 +341,7 @@ function LuxUI:CreateWindow(options)
 		tab.Button.Name = name
 		tab.Button.Text = name
 		tab.Button.Font = Enum.Font.GothamSemibold
-		tab.Button.TextColor3 = name
+		tab.Button.TextColor3 = Color3.fromRGB(255,255,255)
 		tab.Button.TextSize = 15
 		tab.Button.BackgroundColor3 = self.Colors.Main
 		tab.Button.BackgroundTransparency = 0.2
@@ -582,7 +582,7 @@ function LuxUI:CreateWindow(options)
 				-- Update appearance
 				local function update()
 					if not (toggle.Button and toggle.Indicator) then return end
-
+					
 					if toggle.Value then
 						self:Tween(toggle.Indicator, {Position = UDim2.new(1, -26, 0.5, -12)}, 0.2)
 						self:Tween(toggle.Button, {
@@ -718,7 +718,7 @@ function LuxUI:CreateWindow(options)
 				-- Update slider
 				local function update()
 					if not (slider.Fill and slider.Thumb and slider.ValueLabel) then return end
-
+					
 					local percent = (slider.Value - slider.Min) / (slider.Max - slider.Min)
 					slider.Fill.Size = UDim2.new(percent, 0, 1, 0)
 					slider.Thumb.Position = UDim2.new(percent, -8, 0.5, -8)
@@ -936,7 +936,7 @@ function LuxUI:CreateWindow(options)
 						-- Select option
 						optionButton.MouseButton1Click:Connect(function()
 							if not dropdown.List then return end
-
+							
 							dropdown.Value = option
 							dropdown.ValueLabel.Text = option
 							dropdown.Open = false
@@ -973,7 +973,7 @@ function LuxUI:CreateWindow(options)
 				-- Toggle dropdown
 				dropdown.Button.MouseButton1Click:Connect(function()
 					if not (dropdown.List and dropdown.Icon) then return end
-
+					
 					dropdown.Open = not dropdown.Open
 
 					if dropdown.Open then
@@ -1112,7 +1112,7 @@ function LuxUI:CreateWindow(options)
 				-- Toggle listening
 				local function toggleListening()
 					if not keybind.Button then return end
-
+					
 					keybind.Listening = not keybind.Listening
 
 					if keybind.Listening then
@@ -1182,7 +1182,7 @@ function LuxUI:CreateWindow(options)
 				-- Keybind methods
 				function keybind:SetKey(newKey)
 					if not keybind.Button then return end
-
+					
 					keybind.Value = newKey
 					keybind.Button.Text = newKey.Name or "None"
 
@@ -1279,7 +1279,7 @@ end
 
 function LuxUI:MakeDraggable(frame, handle)
 	if not (frame and handle) then return end
-
+	
 	handle = handle or frame
 
 	local dragging
@@ -1533,7 +1533,7 @@ function LuxUI:SetTheme(themeName)
 	if themes[themeName] then
 		self.Theme = themeName
 		self.Colors = themes[themeName]
-
+		
 		-- Update existing UI elements (implement as needed)
 		self:Notify({
 			Title = "Theme Changed",
@@ -1628,4 +1628,3 @@ end)
 ]]
 
 return LuxUI
---check
