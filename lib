@@ -208,6 +208,10 @@ function LuxUI:CreateWatermark()
 	local connection
 	local success, err = pcall(function()
 		connection = RunService.Heartbeat:Connect(function()
+			if not fpsLabel or not fpsLabel.Parent then
+				if connection then connection:Disconnect() end
+				return
+			end
 			frames = frames + 1
 			if tick() - lastTick >= 1 then
 				fpsLabel.Text = string.format("%d FPS", math.floor(frames))
@@ -360,6 +364,7 @@ function LuxUI:CreateWindow(options)
 
 	-- Window methods
 	function window:AddTab(name)
+		if not name then return end
 		local tab = {}
 
 		-- Create tab button
@@ -425,13 +430,14 @@ function LuxUI:CreateWindow(options)
 
 		-- Tab methods
 		function tab:AddSection(title)
+			if not title then return end
 			local section = {}
 
 			section.Main = Instance.new("Frame")
 			section.Main.Name = title
 			section.Main.BackgroundColor3 = self.Colors.Secondary
 			section.Main.BackgroundTransparency = 0.2
-			section.Main.Size = UDim2.new(1, {#content} -20, 0, 0)
+			section.Main.Size = UDim2.new(1, -20, 0, 0)
 			section.Main.Position = UDim2.new(0, 10, 0, 10)
 			section.Main.Parent = tab.Content
 
@@ -447,15 +453,20 @@ function LuxUI:CreateWindow(options)
 
 			section.Title = Instance.new("TextLabel")
 			section.Title.Name = "Title"
-			section.Title.Text = title
-			section.Title.Font = Enum.Font.GothamBlack
-			section.Title.TextColor3 = self.Colors.Text
-			section.Title.TextSize = 16
-			section.Title.BackgroundTransparency = 1
-			section.Title.Size = UDim2.new(1, -15, 0, 35)
-			section.Title.Position = UDim2.new(0, 15, 0, 0)
-			section.Title.TextXAlignment = Enum.TextXAlignment.Left
-			section.Title.Parent = section.Main
+			if section.Title then
+				section.Title.Text = title
+				section.Title.Font = Enum.Font.GothamBlack
+				section.Title.TextColor3 = self.Colors.Text
+				section.Title.TextSize = 16
+				section.Title.BackgroundTransparency = 1
+				section.Title.Size = UDim2.new(1, -15, 0, 35)
+				section.Title.Position = UDim2.new(0, 15, 0, 0)
+				section.Title.TextXAlignment = Enum.TextXAlignment.Left
+				section.Title.Parent = section.Main
+			else
+				warn("Failed to create section title for: " .. tostring(title))
+				return
+			end
 
 			section.Content = Instance.new("Frame")
 			section.Content.Name = "Content"
@@ -815,8 +826,8 @@ function LuxUI:CreateWindow(options)
 				dropdown.Label.Name = "Label"
 				dropdown.Label.Text = options.Name or "Dropdown"
 				dropdown.Label.Font = Enum.Font.GothamSemibold
-				dropdown.Label.TextColor3 = self.Colors.Text
 				dropdown.Label.TextSize = 15
+				dropdown.Label.TextColor3 = self.Colors.Text
 				dropdown.Label.BackgroundTransparency = 1
 				dropdown.Label.Size = UDim2.new(0.7, 0, 1, 0)
 				dropdown.Label.Position = UDim2.new(0, 15, 0, 0)
@@ -878,8 +889,8 @@ function LuxUI:CreateWindow(options)
 
 					for _, option in ipairs(dropdown.Options) do
 						local optionButton = Instance.new("TextButton")
-						optionButton.Name = option
-						optionButton.Text = option
+						optionButton.Name = tostring(option)
+						optionButton.Text = tostring(option)
 						optionButton.Font = Enum.Font.GothamSemibold
 						optionButton.TextColor3 = self.Colors.Text
 						optionButton.TextSize = 15
@@ -923,7 +934,7 @@ function LuxUI:CreateWindow(options)
 						optionButton.MouseButton1Click:Connect(function()
 							if not dropdown.List then return end
 							dropdown.Value = option
-							dropdown.ValueLabel.Text = option
+							dropdown.ValueLabel.Text = tostring(option)
 							dropdown.Open = false
 
 							self:Tween(dropdown.List, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, function()
@@ -1008,14 +1019,14 @@ function LuxUI:CreateWindow(options)
 				end
 
 				function dropdown:SetOptions(newOptions)
-					dropdown.Options = newOptions
+					dropdown.Options = newOptions or {}
 					createOptions()
 				end
 
 				function dropdown:SetValue(newValue)
 					if table.find(dropdown.Options, newValue) then
 						dropdown.Value = newValue
-						dropdown.ValueLabel.Text = newValue
+						dropdown.ValueLabel.Text = tostring(newValue)
 
 						if options.Callback then
 							local success, err = pcall(function()
@@ -1273,6 +1284,9 @@ function LuxUI:MakeDraggable(frame, handle)
 	handle.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement then
 			dragInput = input
+		end
+		if input == dragInput and dragging then
+			update(input)
 		end
 	end)
 
