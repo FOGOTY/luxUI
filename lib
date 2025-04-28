@@ -150,7 +150,7 @@ end
 function LuxUI:CreateWatermark()
 	self.Watermark = Instance.new("Frame")
 	self.Watermark.Name = "Watermark"
-	self.Watermark.BackgroundColor3 = self.Colors.Main
+	self.Watermark.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 	self.Watermark.BackgroundTransparency = 0.3
 	self.Watermark.Size = UDim2.new(0, 220, 0, 35)
 	self.Watermark.Position = UDim2.new(0, 10, 0, 10)
@@ -160,7 +160,7 @@ function LuxUI:CreateWatermark()
 	local shadow = Instance.new("ImageLabel")
 	shadow.Name = "Shadow"
 	shadow.Image = "rbxassetid://1316045217"
-	shadow.ImageColor3 = self.Colors.Shadow
+	shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 	shadow.ImageTransparency = 0.6
 	shadow.BackgroundTransparency = 1
 	shadow.Size = UDim2.new(1, 20, 1, 20)
@@ -174,7 +174,7 @@ function LuxUI:CreateWatermark()
 
 	local stroke = Instance.new("UIStroke")
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	stroke.Color = self.Colors.Accent
+	stroke.Color = Color3.fromRGB(0, 140, 255)
 	stroke.Thickness = 1.5
 	stroke.Parent = self.Watermark
 
@@ -249,7 +249,7 @@ function LuxUI:CreateWindow(options)
 	-- Create main frame
 	window.Main = Instance.new("Frame")
 	window.Main.Name = "Window"
-	window.Main.BackgroundColor3 = self.Colors.Main
+	window.Main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 	window.Main.BackgroundTransparency = 0.1
 	window.Main.Size = options.Size or UDim2.new(0, 550, 0, 450)
 	window.Main.Position = options.Position or UDim2.new(0.5, -275, 0.5, -225)
@@ -259,7 +259,7 @@ function LuxUI:CreateWindow(options)
 	local shadow = Instance.new("ImageLabel")
 	shadow.Name = "Shadow"
 	shadow.Image = "rbxassetid://1316045217"
-	shadow.ImageColor3 = self.Colors.Shadow
+	shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 	shadow.ImageTransparency = 0.5
 	shadow.BackgroundTransparency = 1
 	shadow.Size = UDim2.new(1, 30, 1, 30)
@@ -273,14 +273,14 @@ function LuxUI:CreateWindow(options)
 
 	local stroke = Instance.new("UIStroke")
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	stroke.Color = self.Colors.Accent
+	stroke.Color = Color3.fromRGB(0, 140, 255)
 	stroke.Thickness = 1.5
 	stroke.Parent = window.Main
 
 	-- Create title bar
 	window.TitleBar = Instance.new("Frame")
 	window.TitleBar.Name = "TitleBar"
-	window.TitleBar.BackgroundColor3 = self.Colors.Secondary
+	window.TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 	window.TitleBar.BackgroundTransparency = 0.2
 	window.TitleBar.Size = UDim2.new(1, 0, 0, 35)
 	window.TitleBar.Parent = window.Main
@@ -329,7 +329,7 @@ function LuxUI:CreateWindow(options)
 	-- Create tab holder
 	window.TabHolder = Instance.new("Frame")
 	window.TabHolder.Name = "TabHolder"
-	window.TabHolder.BackgroundColor3 = self.Colors.Secondary
+	window.TabHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 	window.TabHolder.BackgroundTransparency = 0.2
 	window.TabHolder.Size = UDim2.new(0, 140, 1, -35)
 	window.TabHolder.Position = UDim2.new(0, 0, 0, 35)
@@ -344,7 +344,7 @@ function LuxUI:CreateWindow(options)
 	-- Create content frame
 	window.Content = Instance.new("Frame")
 	window.Content.Name = "Content"
-	window.Content.BackgroundColor3 = self.Colors.Main
+	window.Content.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 	window.Content.BackgroundTransparency = 0.1
 	window.Content.Size = UDim2.new(1, -140, 1, -35)
 	window.Content.Position = UDim2.new(0, 140, 0, 35)
@@ -374,7 +374,7 @@ function LuxUI:CreateWindow(options)
 		tab.Button.Font = Enum.Font.GothamSemibold
 		tab.Button.TextColor3 = Color3.fromRGB(255,255,255)
 		tab.Button.TextSize = 15
-		tab.Button.BackgroundColor3 = self.Colors.Main
+		tab.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 		tab.Button.BackgroundTransparency = 0.2
 		tab.Button.Size = UDim2.new(1, -10, 0, 35)
 		tab.Button.Position = UDim2.new(0, 5, 0, 5)
@@ -385,7 +385,7 @@ function LuxUI:CreateWindow(options)
 		corner.Parent = tab.Button
 
 		local gradient = Instance.new("UIGradient")
-		gradient.Color = self.Colors.AccentGradient
+		gradient.Color = Color3.fromRGB(0, 140, 255)
 		gradient.Enabled = false
 		gradient.Parent = tab.Button
 
@@ -408,7 +408,7 @@ function LuxUI:CreateWindow(options)
 				if otherTab.Content and otherTab.Button then
 					otherTab.Content.Visible = false
 					self:Tween(otherTab.Button, {
-						BackgroundColor3 = self.Colors.Main,
+						BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 						BackgroundTransparency = 0.2
 					}, 0.2)
 					local otherGradient = otherTab.Button:FindFirstChild("UIGradient")
@@ -421,7 +421,7 @@ function LuxUI:CreateWindow(options)
 			if tab.Content and tab.Button then
 				tab.Content.Visible = true
 				self:Tween(tab.Button, {
-					BackgroundColor3 = self.Colors.Accent,
+					BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 					BackgroundTransparency = 0
 				}, 0.2)
 				gradient.Enabled = true
@@ -435,7 +435,7 @@ function LuxUI:CreateWindow(options)
 
 			section.Main = Instance.new("Frame")
 			section.Main.Name = title
-			section.Main.BackgroundColor3 = self.Colors.Secondary
+			section.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 			section.Main.BackgroundTransparency = 0.2
 			section.Main.Size = UDim2.new(1, -20, 0, 0)
 			section.Main.Position = UDim2.new(0, 10, 0, 10)
@@ -447,7 +447,7 @@ function LuxUI:CreateWindow(options)
 
 			local stroke = Instance.new("UIStroke")
 			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-			stroke.Color = self.Colors.Accent
+			stroke.Color = Color3.fromRGB(0, 140, 255)
 			stroke.Thickness = 1.5
 			stroke.Parent = section.Main
 
@@ -495,7 +495,7 @@ function LuxUI:CreateWindow(options)
 				button.Font = Enum.Font.GothamSemibold
 				button.TextColor3 = Color3.fromRGB(255,255,255)
 				button.TextSize = 15
-				button.BackgroundColor3 = self.Colors.Main
+				button.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 				button.BackgroundTransparency = 0.2
 				button.AutoButtonColor = false
 				button.Size = UDim2.new(1, -20, 0, 35)
@@ -508,19 +508,19 @@ function LuxUI:CreateWindow(options)
 
 				local stroke = Instance.new("UIStroke")
 				stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-				stroke.Color = self.Colors.Accent
+				stroke.Color = Color3.fromRGB(0, 140, 255)
 				stroke.Thickness = 1.5
 				stroke.Parent = button
 
 				local gradient = Instance.new("UIGradient")
-				gradient.Color = self.Colors.AccentGradient
+				gradient.Color = Color3.fromRGB(0, 140, 255)
 				gradient.Enabled = false
 				gradient.Parent = button
 
 				button.MouseEnter:Connect(function()
 					if button then
 						self:Tween(button, {
-							BackgroundColor3 = self.Colors.Accent,
+							BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 							BackgroundTransparency = 0
 						}, 0.2)
 						gradient.Enabled = true
@@ -530,7 +530,7 @@ function LuxUI:CreateWindow(options)
 				button.MouseLeave:Connect(function()
 					if button then
 						self:Tween(button, {
-							BackgroundColor3 = self.Colors.Main,
+							BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 							BackgroundTransparency = 0.2
 						}, 0.2)
 						gradient.Enabled = false
@@ -576,7 +576,7 @@ function LuxUI:CreateWindow(options)
 				toggle.Button = Instance.new("TextButton")
 				toggle.Button.Name = "Button"
 				toggle.Button.Text = ""
-				toggle.Button.BackgroundColor3 = self.Colors.Main
+				toggle.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 				toggle.Button.BackgroundTransparency = 0.2
 				toggle.Button.AutoButtonColor = false
 				toggle.Button.Size = UDim2.new(0, 55, 0, 28)
@@ -589,7 +589,7 @@ function LuxUI:CreateWindow(options)
 
 				local stroke = Instance.new("UIStroke")
 				stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-				stroke.Color = self.Colors.Accent
+				stroke.Color = Color3.fromRGB(0, 140, 255)
 				stroke.Thickness = 1.5
 				stroke.Parent = toggle.Button
 
@@ -609,13 +609,13 @@ function LuxUI:CreateWindow(options)
 					if toggle.Value then
 						self:Tween(toggle.Indicator, {Position = UDim2.new(1, -26, 0.5, -12)}, 0.2)
 						self:Tween(toggle.Button, {
-							BackgroundColor3 = self.Colors.Accent,
+							BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 							BackgroundTransparency = 0
 						}, 0.2)
 					else
 						self:Tween(toggle.Indicator, {Position = UDim2.new(0, 2, 0.5, -12)}, 0.2)
 						self:Tween(toggle.Button, {
-							BackgroundColor3 = self.Colors.Main,
+							BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 							BackgroundTransparency = 0.2
 						}, 0.2)
 					end
@@ -689,7 +689,7 @@ function LuxUI:CreateWindow(options)
 
 				slider.Track = Instance.new("Frame")
 				slider.Track.Name = "Track"
-				slider.Track.BackgroundColor3 = self.Colors.Main
+				slider.Track.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 				slider.Track.BackgroundTransparency = 0.2
 				slider.Track.Size = UDim2.new(1, 0, 0, 6)
 				slider.Track.Position = UDim2.new(0, 0, 1, -18)
@@ -701,13 +701,13 @@ function LuxUI:CreateWindow(options)
 
 				local trackStroke = Instance.new("UIStroke")
 				trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-				trackStroke.Color = self.Colors.Accent
+				trackStroke.Color = Color3.fromRGB(0, 140, 255)
 				trackStroke.Thickness = 1.5
 				trackStroke.Parent = slider.Track
 
 				slider.Fill = Instance.new("Frame")
 				slider.Fill.Name = "Fill"
-				slider.Fill.BackgroundColor3 = self.Colors.Accent
+				slider.Fill.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
 				slider.Fill.Size = UDim2.new(0, 0, 1, 0)
 				slider.Fill.Position = UDim2.new(0, 0, 0, 0)
 				slider.Fill.Parent = slider.Track
@@ -717,7 +717,7 @@ function LuxUI:CreateWindow(options)
 				fillCorner.Parent = slider.Fill
 
 				local fillGradient = Instance.new("UIGradient")
-				fillGradient.Color = self.Colors.AccentGradient
+				fillGradient.Color = Color3.fromRGB(0, 140, 255)
 				fillGradient.Parent = slider.Fill
 
 				slider.Thumb = Instance.new("Frame")
@@ -805,7 +805,7 @@ function LuxUI:CreateWindow(options)
 				dropdown.Button = Instance.new("TextButton")
 				dropdown.Button.Name = "Button"
 				dropdown.Button.Text = ""
-				dropdown.Button.BackgroundColor3 = self.Colors.Main
+				dropdown.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 				dropdown.Button.BackgroundTransparency = 0.2
 				dropdown.Button.AutoButtonColor = false
 				dropdown.Button.Size = UDim2.new(1, 0, 0, 35)
@@ -818,7 +818,7 @@ function LuxUI:CreateWindow(options)
 
 				local buttonStroke = Instance.new("UIStroke")
 				buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-				buttonStroke.Color = self.Colors.Accent
+				buttonStroke.Color = Color3.fromRGB(0, 140, 255)
 				buttonStroke.Thickness = 1.5
 				buttonStroke.Parent = dropdown.Button
 
@@ -857,7 +857,7 @@ function LuxUI:CreateWindow(options)
 
 				dropdown.List = Instance.new("Frame")
 				dropdown.List.Name = "List"
-				dropdown.List.BackgroundColor3 = self.Colors.Secondary
+				dropdown.List.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 				dropdown.List.BackgroundTransparency = 0.2
 				dropdown.List.Size = UDim2.new(1, 0, 0, 0)
 				dropdown.List.Position = UDim2.new(0, 0, 0, 40)
@@ -870,7 +870,7 @@ function LuxUI:CreateWindow(options)
 
 				local listStroke = Instance.new("UIStroke")
 				listStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-				listStroke.Color = self.Colors.Accent
+				listStroke.Color = Color3.fromRGB(0, 140, 255)
 				listStroke.Thickness = 1.5
 				listStroke.Parent = dropdown.List
 
@@ -894,7 +894,7 @@ function LuxUI:CreateWindow(options)
 						optionButton.Font = Enum.Font.GothamSemibold
 						optionButton.TextColor3 = Color3.fromRGB(255,255,255)
 						optionButton.TextSize = 15
-						optionButton.BackgroundColor3 = self.Colors.Main
+						optionButton.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 						optionButton.BackgroundTransparency = 0.2
 						optionButton.AutoButtonColor = false
 						optionButton.Size = UDim2.new(1, -10, 0, 35)
@@ -907,14 +907,14 @@ function LuxUI:CreateWindow(options)
 						optionCorner.Parent = optionButton
 
 						local optionGradient = Instance.new("UIGradient")
-						optionGradient.Color = self.Colors.AccentGradient
+						optionGradient.Color = Color3.fromRGB(0, 140, 255)
 						optionGradient.Enabled = false
 						optionGradient.Parent = optionButton
 
 						optionButton.MouseEnter:Connect(function()
 							if optionButton then
 								self:Tween(optionButton, {
-									BackgroundColor3 = self.Colors.Accent,
+									BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 									BackgroundTransparency = 0
 								}, 0.2)
 								optionGradient.Enabled = true
@@ -924,7 +924,7 @@ function LuxUI:CreateWindow(options)
 						optionButton.MouseLeave:Connect(function()
 							if optionButton then
 								self:Tween(optionButton, {
-									BackgroundColor3 = self.Colors.Main,
+									BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 									BackgroundTransparency = 0.2
 								}, 0.2)
 								optionGradient.Enabled = false
@@ -1077,7 +1077,7 @@ function LuxUI:CreateWindow(options)
 				keybind.Button.Font = Enum.Font.GothamSemibold
 				keybind.Button.TextColor3 = Color3.fromRGB(255,255,255)
 				keybind.Button.TextSize = 14
-				keybind.Button.BackgroundColor3 = self.Colors.Main
+				keybind.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 				keybind.Button.BackgroundTransparency = 0.2
 				keybind.Button.AutoButtonColor = false
 				keybind.Button.Size = UDim2.new(0, 100, 0, 28)
@@ -1090,7 +1090,7 @@ function LuxUI:CreateWindow(options)
 
 				local buttonStroke = Instance.new("UIStroke")
 				buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-				buttonStroke.Color = self.Colors.Accent
+				buttonStroke.Color = Color3.fromRGB(0, 140, 255)
 				buttonStroke.Thickness = 1.5
 				buttonStroke.Parent = keybind.Button
 
@@ -1102,7 +1102,7 @@ function LuxUI:CreateWindow(options)
 					if keybind.Listening then
 						keybind.Button.Text = "..."
 						self:Tween(keybind.Button, {
-							BackgroundColor3 = self.Colors.Accent,
+							BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 							BackgroundTransparency = 0
 						}, 0.2)
 
@@ -1113,7 +1113,7 @@ function LuxUI:CreateWindow(options)
 								keybind.Listening = false
 
 								self:Tween(keybind.Button, {
-									BackgroundColor3 = self.Colors.Main,
+									BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 									BackgroundTransparency = 0.2
 								}, 0.2)
 
@@ -1141,7 +1141,7 @@ function LuxUI:CreateWindow(options)
 						end
 						keybind.Button.Text = keybind.Value.Name or "None"
 						self:Tween(keybind.Button, {
-							BackgroundColor3 = self.Colors.Main,
+							BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 							BackgroundTransparency = 0.2
 						}, 0.2)
 					end
@@ -1205,7 +1205,7 @@ function LuxUI:CreateWindow(options)
 		table.insert(window.Tabs, tab)
 
 		if #window.Tabs == 1 and tab.Button and tab.Content then
-			tab.Button.BackgroundColor3 = self.Colors.Accent
+			tab.Button.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
 			tab.Button.BackgroundTransparency = 0
 			local gradient = tab.Button:FindFirstChild("UIGradient")
 			if gradient then
@@ -1310,7 +1310,7 @@ function LuxUI:Notify(options)
 	options = options or {}
 	local notification = Instance.new("Frame")
 	notification.Name = "Notification"
-	notification.BackgroundColor3 = self.Colors.Main
+	notification.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 	notification.BackgroundTransparency = 0.2
 	notification.Size = UDim2.new(0, 320, 0, 0)
 	notification.Position = UDim2.new(1, -340, 1, -20)
@@ -1320,7 +1320,7 @@ function LuxUI:Notify(options)
 	local shadow = Instance.new("ImageLabel")
 	shadow.Name = "Shadow"
 	shadow.Image = "rbxassetid://1316045217"
-	shadow.ImageColor3 = self.Colors.Shadow
+	shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 	shadow.ImageTransparency = 0.6
 	shadow.BackgroundTransparency = 1
 	shadow.Size = UDim2.new(1, 20, 1, 20)
@@ -1334,7 +1334,7 @@ function LuxUI:Notify(options)
 
 	local stroke = Instance.new("UIStroke")
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	stroke.Color = self.Colors.Accent
+	stroke.Color = Color3.fromRGB(0, 140, 255)
 	stroke.Thickness = 1.5
 	stroke.Parent = notification
 
@@ -1511,4 +1511,4 @@ function LuxUI:SetTheme(themeName)
 end
 
 return LuxUI
---lol2
+--lo
