@@ -125,7 +125,6 @@ function LuxUI:CreateWatermark()
 	local stroke = Instance.new("UIStroke")
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	stroke.Color = colors.Accent
-	stroke.patterns = 1
 	stroke.Parent = self.Watermark
 
 	local label = Instance.new("TextLabel")
