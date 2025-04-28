@@ -194,7 +194,7 @@ function LuxUI:CreateWatermark()
 	fpsLabel.Name = "FPS"
 	fpsLabel.Text = "0 FPS"
 	fpsLabel.Font = Enum.Font.GothamSemibold
-	fpsLabel.TextColor3 = Color3.fromRGB(255,255,255)Dark
+	fpsLabel.TextColor3 = Color3.fromRGB(255,255,255)
 	fpsLabel.TextSize = 14
 	fpsLabel.BackgroundTransparency = 1
 	fpsLabel.Size = UDim2.new(0, 60, 1, 0)
@@ -1511,4 +1511,4 @@ function LuxUI:SetTheme(themeName)
 end
 
 return LuxUI
---lol
+--lol2
