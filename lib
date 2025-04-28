@@ -63,7 +63,6 @@ local themes = {
 		Main = Color3.fromRGB(240, 240, 245),
 		Secondary = Color3.fromRGB(220, 220, 225),
 		Accent = Color3.fromRGB(0, 120, 200),
-
 		Text = Color3.fromRGB(0, 0, 0),
 		TextDark = Color3.fromRGB(100, 100, 100),
 		Shadow = Color3.fromRGB(150, 150, 150)
@@ -83,6 +82,7 @@ function LuxUI.new(options)
 	self.Colors = themes[self.Theme] or themes.Dark
 	self.Flags = {}
 	self.ActiveTweens = {}
+	self.Connections = {} -- Store connections for cleanup
 
 	-- Create main UI elements
 	local success, err = pcall(function()
@@ -103,6 +103,25 @@ function LuxUI.new(options)
 	end
 
 	return self
+end
+
+-- Cleanup method
+function LuxUI:Destroy()
+	for _, connection in pairs(self.Connections) do
+		if connection then
+			connection:Disconnect()
+		end
+	end
+	for _, tween in pairs(self.ActiveTweens) do
+		if tween then
+			tween:Cancel()
+		end
+	end
+	if self.ScreenGui then
+		self.ScreenGui:Destroy()
+	end
+	self.Connections = {}
+	self.ActiveTweens = {}
 end
 
 -- UI Creation Functions
@@ -215,15 +234,19 @@ function LuxUI:CreateWatermark()
 	if not success then
 		warn("Failed to set up FPS counter: " .. tostring(err))
 	end
+	if connection then
+		table.insert(self.Connections, connection)
+	end
 
 	-- Cleanup connection
-	self.Watermark.AncestryChanged:Connect(function()
+	local ancestryConnection = self.Watermark.AncestryChanged:Connect(function()
 		if not self.Watermark:IsDescendantOf(game) then
 			if connection then
 				connection:Disconnect()
 			end
 		end
 	end)
+	table.insert(self.Connections, ancestryConnection)
 
 	-- Make draggable
 	local success, err = pcall(function()
@@ -305,7 +328,7 @@ function LuxUI:CreateWindow(options)
 	close.Parent = window.TitleBar
 
 	-- Close animation
-	close.MouseButton1Click:Connect(function()
+	local closeConnection = close.MouseButton1Click:Connect(function()
 		if window.Main then
 			self:Tween(window.Main, {
 				Size = UDim2.new(0, 0, 0, 0),
@@ -317,6 +340,7 @@ function LuxUI:CreateWindow(options)
 			end)
 		end
 	end)
+	table.insert(self.Connections, closeConnection)
 
 	-- Create tab holder
 	window.TabHolder = Instance.new("Frame")
@@ -376,8 +400,6 @@ function LuxUI:CreateWindow(options)
 		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = tab.Button
 
-
-
 		-- Create tab content
 		tab.Content = Instance.new("Frame")
 		tab.Content.Name = name
@@ -392,7 +414,7 @@ function LuxUI:CreateWindow(options)
 		tabList.Parent = tab.Content
 
 		-- Tab selection logic
-		tab.Button.MouseButton1Click:Connect(function()
+		local tabConnection = tab.Button.MouseButton1Click:Connect(function()
 			for _, otherTab in pairs(window.Tabs or {}) do
 				if otherTab.Content and otherTab.Button then
 					otherTab.Content.Visible = false
@@ -400,7 +422,6 @@ function LuxUI:CreateWindow(options)
 						BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 						BackgroundTransparency = 0.2
 					}, 0.2)
-
 				end
 			end
 
@@ -410,9 +431,9 @@ function LuxUI:CreateWindow(options)
 					BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 					BackgroundTransparency = 0
 				}, 0.2)
-
 			end
 		end)
+		table.insert(self.Connections, tabConnection)
 
 		-- Tab methods
 		function tab:AddSection(title)
@@ -467,11 +488,12 @@ function LuxUI:CreateWindow(options)
 			listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			listLayout.Parent = section.Content
 
-			listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			local sizeConnection = listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 				if section.Main then
 					section.Main.Size = UDim2.new(1, -20, 0, listLayout.AbsoluteContentSize.Y + 60)
 				end
 			end)
+			table.insert(self.Connections, sizeConnection)
 
 			function section:AddButton(options)
 				options = options or {}
@@ -498,27 +520,27 @@ function LuxUI:CreateWindow(options)
 				stroke.Thickness = 1.5
 				stroke.Parent = button
 
-				button.MouseEnter:Connect(function()
+				local enterConnection = button.MouseEnter:Connect(function()
 					if button then
 						self:Tween(button, {
 							BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 							BackgroundTransparency = 0
 						}, 0.2)
-						
 					end
 				end)
+				table.insert(self.Connections, enterConnection)
 
-				button.MouseLeave:Connect(function()
+				local leaveConnection = button.MouseLeave:Connect(function()
 					if button then
 						self:Tween(button, {
 							BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 							BackgroundTransparency = 0.2
 						}, 0.2)
-						
 					end
 				end)
+				table.insert(self.Connections, leaveConnection)
 
-				button.MouseButton1Click:Connect(function()
+				local clickConnection = button.MouseButton1Click:Connect(function()
 					if options.Callback then
 						local success, err = pcall(options.Callback)
 						if not success then
@@ -526,6 +548,7 @@ function LuxUI:CreateWindow(options)
 						end
 					end
 				end)
+				table.insert(self.Connections, clickConnection)
 
 				return button
 			end
@@ -604,7 +627,7 @@ function LuxUI:CreateWindow(options)
 
 				update()
 
-				toggle.Button.MouseButton1Click:Connect(function()
+				local toggleConnection = toggle.Button.MouseButton1Click:Connect(function()
 					toggle.Value = not toggle.Value
 					update()
 
@@ -621,6 +644,7 @@ function LuxUI:CreateWindow(options)
 						self.Flags[options.Flag] = toggle.Value
 					end
 				end)
+				table.insert(self.Connections, toggleConnection)
 
 				if options.Flag then
 					self.Flags[options.Flag] = toggle.Value
@@ -697,8 +721,6 @@ function LuxUI:CreateWindow(options)
 				fillCorner.CornerRadius = UDim.new(0, 3)
 				fillCorner.Parent = slider.Fill
 
-
-
 				slider.Thumb = Instance.new("Frame")
 				slider.Thumb.Name = "Thumb"
 				slider.Thumb.BackgroundColor3 = Color3.fromRGB(255,255,255)
@@ -734,7 +756,7 @@ function LuxUI:CreateWindow(options)
 				update()
 
 				local dragging = false
-				slider.Track.InputBegan:Connect(function(input)
+				local inputBeganConnection = slider.Track.InputBegan:Connect(function(input)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 then
 						dragging = true
 						local percent = (input.Position.X - slider.Track.AbsolutePosition.X) / slider.Track.AbsoluteSize.X
@@ -743,14 +765,16 @@ function LuxUI:CreateWindow(options)
 						update()
 					end
 				end)
+				table.insert(self.Connections, inputBeganConnection)
 
-				UserInputService.InputEnded:Connect(function(input)
+				local inputEndedConnection = UserInputService.InputEnded:Connect(function(input)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 then
 						dragging = false
 					end
 				end)
+				table.insert(self.Connections, inputEndedConnection)
 
-				UserInputService.InputChanged:Connect(function(input)
+				local inputChangedConnection = UserInputService.InputChanged:Connect(function(input)
 					if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 						local percent = (input.Position.X - slider.Track.AbsolutePosition.X) / slider.Track.AbsoluteSize.X
 						percent = math.clamp(percent, 0, 1)
@@ -758,6 +782,7 @@ function LuxUI:CreateWindow(options)
 						update()
 					end
 				end)
+				table.insert(self.Connections, inputChangedConnection)
 
 				if options.Flag then
 					self.Flags[options.Flag] = slider.Value
@@ -885,29 +910,27 @@ function LuxUI:CreateWindow(options)
 						optionCorner.CornerRadius = UDim.new(0, 8)
 						optionCorner.Parent = optionButton
 
-
-
-						optionButton.MouseEnter:Connect(function()
+						local enterConnection = optionButton.MouseEnter:Connect(function()
 							if optionButton then
 								self:Tween(optionButton, {
 									BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 									BackgroundTransparency = 0
 								}, 0.2)
-								
 							end
 						end)
+						table.insert(self.Connections, enterConnection)
 
-						optionButton.MouseLeave:Connect(function()
+						local leaveConnection = optionButton.MouseLeave:Connect(function()
 							if optionButton then
 								self:Tween(optionButton, {
 									BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 									BackgroundTransparency = 0.2
 								}, 0.2)
-								
 							end
 						end)
+						table.insert(self.Connections, leaveConnection)
 
-						optionButton.MouseButton1Click:Connect(function()
+						local clickConnection = optionButton.MouseButton1Click:Connect(function()
 							if not dropdown.List then return end
 							dropdown.Value = option
 							dropdown.ValueLabel.Text = tostring(option)
@@ -934,6 +957,7 @@ function LuxUI:CreateWindow(options)
 								self.Flags[options.Flag] = option
 							end
 						end)
+						table.insert(self.Connections, clickConnection)
 					end
 
 					local listHeight = #dropdown.Options * 43 + 8
@@ -942,7 +966,7 @@ function LuxUI:CreateWindow(options)
 
 				createOptions()
 
-				dropdown.Button.MouseButton1Click:Connect(function()
+				local buttonConnection = dropdown.Button.MouseButton1Click:Connect(function()
 					if not (dropdown.List and dropdown.Icon) then return end
 					dropdown.Open = not dropdown.Open
 
@@ -959,6 +983,7 @@ function LuxUI:CreateWindow(options)
 						self:Tween(dropdown.Icon, {Rotation = 0}, 0.2)
 					end
 				end)
+				table.insert(self.Connections, buttonConnection)
 
 				local clickConnection
 				clickConnection = UserInputService.InputBegan:Connect(function(input)
@@ -981,14 +1006,16 @@ function LuxUI:CreateWindow(options)
 						end
 					end
 				end)
+				table.insert(self.Connections, clickConnection)
 
-				dropdown.Main.AncestryChanged:Connect(function()
+				local ancestryConnection = dropdown.Main.AncestryChanged:Connect(function()
 					if not dropdown.Main:IsDescendantOf(game) then
 						if clickConnection then
 							clickConnection:Disconnect()
 						end
 					end
 				end)
+				table.insert(self.Connections, ancestryConnection)
 
 				if options.Flag then
 					self.Flags[options.Flag] = dropdown.Value
@@ -1111,6 +1138,7 @@ function LuxUI:CreateWindow(options)
 								end
 							end
 						end)
+						table.insert(self.Connections, inputConnection)
 					else
 						if inputConnection then
 							inputConnection:Disconnect()
@@ -1123,15 +1151,17 @@ function LuxUI:CreateWindow(options)
 					end
 				end
 
-				keybind.Button.MouseButton1Click:Connect(toggleListening)
+				local buttonConnection = keybind.Button.MouseButton1Click:Connect(toggleListening)
+				table.insert(self.Connections, buttonConnection)
 
-				keybind.Main.AncestryChanged:Connect(function()
+				local ancestryConnection = keybind.Main.AncestryChanged:Connect(function()
 					if not keybind.Main:IsDescendantOf(game) then
 						if inputConnection then
 							inputConnection:Disconnect()
 						end
 					end
 				end)
+				table.insert(self.Connections, ancestryConnection)
 
 				if options.Flag then
 					self.Flags[options.Flag] = keybind.Value
@@ -1183,8 +1213,6 @@ function LuxUI:CreateWindow(options)
 		if #window.Tabs == 1 and tab.Button and tab.Content then
 			tab.Button.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
 			tab.Button.BackgroundTransparency = 0
-			
-
 			tab.Content.Visible = true
 		end
 
@@ -1196,7 +1224,7 @@ end
 
 -- Utility Functions
 function LuxUI:Tween(instance, properties, duration, callback)
-	if not instance then return end
+	if not instance or not instance.Parent then return end
 	local tweenKey = tostring(instance)
 	if self.ActiveTweens[tweenKey] then
 		self.ActiveTweens[tweenKey]:Cancel()
@@ -1213,19 +1241,17 @@ function LuxUI:Tween(instance, properties, duration, callback)
 	self.ActiveTweens[tweenKey] = tween
 	tween:Play()
 
-	if callback then
-		tween.Completed:Connect(function()
-			self.ActiveTweens[tweenKey] = nil
+	local completedConnection = tween.Completed:Connect(function()
+		self.ActiveTweens[tweenKey] = nil
+		if callback then
 			local success, err = pcall(callback)
 			if not success then
 				warn("Tween callback error: " .. tostring(err))
 			end
-		end)
-	else
-		tween.Completed:Connect(function()
-			self.ActiveTweens[tweenKey] = nil
-		end)
-	end
+		end
+	end)
+	table.insert(self.Connections, completedConnection)
+
 	return tween
 end
 
@@ -1242,20 +1268,26 @@ function LuxUI:MakeDraggable(frame, handle)
 		frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 
-	handle.InputBegan:Connect(function(input)
+	local inputBeganConnection = handle.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
 			dragStart = input.Position
 			startPos = frame.Position
-			input.Changed:Connect(function()
+			local changedConnection
+			changedConnection = input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
 					dragging = false
+					if changedConnection then
+						changedConnection:Disconnect()
+					end
 				end
 			end)
+			table.insert(self.Connections, changedConnection)
 		end
 	end)
+	table.insert(self.Connections, inputBeganConnection)
 
-	handle.InputChanged:Connect(function(input)
+	local inputChangedConnection = handle.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement then
 			dragInput = input
 		end
@@ -1263,21 +1295,23 @@ function LuxUI:MakeDraggable(frame, handle)
 			update(input)
 		end
 	end)
+	table.insert(self.Connections, inputChangedConnection)
 
-	local dragConnection
-	dragConnection = UserInputService.InputChanged:Connect(function(input)
+	local dragConnection = UserInputService.InputChanged:Connect(function(input)
 		if input == dragInput and dragging then
 			update(input)
 		end
 	end)
+	table.insert(self.Connections, dragConnection)
 
-	frame.AncestryChanged:Connect(function()
+	local ancestryConnection = frame.AncestryChanged:Connect(function()
 		if not frame:IsDescendantOf(game) then
 			if dragConnection then
 				dragConnection:Disconnect()
 			end
 		end
 	end)
+	table.insert(self.Connections, ancestryConnection)
 end
 
 function LuxUI:Notify(options)
@@ -1351,7 +1385,7 @@ function LuxUI:Notify(options)
 
 	if options.Duration and options.Duration > 0 then
 		task.delay(options.Duration, function()
-			if notification then
+			if notification and notification.Parent then
 				self:Tween(notification, {
 					Position = UDim2.new(1, -340, 1, totalHeight + 20),
 					BackgroundTransparency = 1
@@ -1375,8 +1409,8 @@ function LuxUI:Notify(options)
 	close.Position = UDim2.new(1, -30, 0, 10)
 	close.Parent = notification
 
-	close.MouseButton1Click:Connect(function()
-		if notification then
+	local closeConnection = close.MouseButton1Click:Connect(function()
+		if notification and notification.Parent then
 			self:Tween(notification, {
 				Position = UDim2.new(1, -340, 1, totalHeight + 20),
 				BackgroundTransparency = 1
@@ -1387,6 +1421,7 @@ function LuxUI:Notify(options)
 			end)
 		end
 	end)
+	table.insert(self.Connections, closeConnection)
 
 	return notification
 end
@@ -1464,6 +1499,9 @@ function LuxUI:BindToKey(keyCode, callback)
 	if not success then
 		warn("Failed to bind key: " .. tostring(err))
 	end
+	if connection then
+		table.insert(self.Connections, connection)
+	end
 	return connection
 end
 
@@ -1485,4 +1523,3 @@ function LuxUI:SetTheme(themeName)
 end
 
 return LuxUI
---lod
