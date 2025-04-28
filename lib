@@ -5,7 +5,6 @@
     - Shadow effects
     - Modern glass-morphism styling
     - Improved error handling
-    - Gradient accents
     - Theme support
 ]=]
 
@@ -56,10 +55,6 @@ local themes = {
 		Main = Color3.fromRGB(20, 20, 25),
 		Secondary = Color3.fromRGB(30, 30, 35),
 		Accent = Color3.fromRGB(0, 140, 255),
-		AccentGradient = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 140, 255)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 200, 255))
-		}),
 		Text = Color3.fromRGB(255, 255, 255),
 		TextDark = Color3.fromRGB(150, 150, 150),
 		Shadow = Color3.fromRGB(0, 0, 0)
@@ -68,10 +63,7 @@ local themes = {
 		Main = Color3.fromRGB(240, 240, 245),
 		Secondary = Color3.fromRGB(220, 220, 225),
 		Accent = Color3.fromRGB(0, 120, 200),
-		AccentGradient = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 120, 200)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 180, 220))
-		}),
+
 		Text = Color3.fromRGB(0, 0, 0),
 		TextDark = Color3.fromRGB(100, 100, 100),
 		Shadow = Color3.fromRGB(150, 150, 150)
@@ -384,10 +376,7 @@ function LuxUI:CreateWindow(options)
 		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = tab.Button
 
-		local gradient = Instance.new("UIGradient")
-		gradient.Color = Color3.fromRGB(0, 140, 255)
-		gradient.Enabled = false
-		gradient.Parent = tab.Button
+
 
 		-- Create tab content
 		tab.Content = Instance.new("Frame")
@@ -411,10 +400,7 @@ function LuxUI:CreateWindow(options)
 						BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 						BackgroundTransparency = 0.2
 					}, 0.2)
-					local otherGradient = otherTab.Button:FindFirstChild("UIGradient")
-					if otherGradient then
-						otherGradient.Enabled = false
-					end
+
 				end
 			end
 
@@ -424,7 +410,7 @@ function LuxUI:CreateWindow(options)
 					BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 					BackgroundTransparency = 0
 				}, 0.2)
-				gradient.Enabled = true
+
 			end
 		end)
 
@@ -512,18 +498,13 @@ function LuxUI:CreateWindow(options)
 				stroke.Thickness = 1.5
 				stroke.Parent = button
 
-				local gradient = Instance.new("UIGradient")
-				gradient.Color = Color3.fromRGB(0, 140, 255)
-				gradient.Enabled = false
-				gradient.Parent = button
-
 				button.MouseEnter:Connect(function()
 					if button then
 						self:Tween(button, {
 							BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 							BackgroundTransparency = 0
 						}, 0.2)
-						gradient.Enabled = true
+						
 					end
 				end)
 
@@ -533,7 +514,7 @@ function LuxUI:CreateWindow(options)
 							BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 							BackgroundTransparency = 0.2
 						}, 0.2)
-						gradient.Enabled = false
+						
 					end
 				end)
 
@@ -716,9 +697,7 @@ function LuxUI:CreateWindow(options)
 				fillCorner.CornerRadius = UDim.new(0, 3)
 				fillCorner.Parent = slider.Fill
 
-				local fillGradient = Instance.new("UIGradient")
-				fillGradient.Color = Color3.fromRGB(0, 140, 255)
-				fillGradient.Parent = slider.Fill
+
 
 				slider.Thumb = Instance.new("Frame")
 				slider.Thumb.Name = "Thumb"
@@ -906,10 +885,7 @@ function LuxUI:CreateWindow(options)
 						optionCorner.CornerRadius = UDim.new(0, 8)
 						optionCorner.Parent = optionButton
 
-						local optionGradient = Instance.new("UIGradient")
-						optionGradient.Color = Color3.fromRGB(0, 140, 255)
-						optionGradient.Enabled = false
-						optionGradient.Parent = optionButton
+
 
 						optionButton.MouseEnter:Connect(function()
 							if optionButton then
@@ -917,7 +893,7 @@ function LuxUI:CreateWindow(options)
 									BackgroundColor3 = Color3.fromRGB(0, 140, 255),
 									BackgroundTransparency = 0
 								}, 0.2)
-								optionGradient.Enabled = true
+								
 							end
 						end)
 
@@ -927,7 +903,7 @@ function LuxUI:CreateWindow(options)
 									BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 									BackgroundTransparency = 0.2
 								}, 0.2)
-								optionGradient.Enabled = false
+								
 							end
 						end)
 
@@ -1207,10 +1183,8 @@ function LuxUI:CreateWindow(options)
 		if #window.Tabs == 1 and tab.Button and tab.Content then
 			tab.Button.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
 			tab.Button.BackgroundTransparency = 0
-			local gradient = tab.Button:FindFirstChild("UIGradient")
-			if gradient then
-				gradient.Enabled = true
-			end
+			
+
 			tab.Content.Visible = true
 		end
 
@@ -1511,4 +1485,4 @@ function LuxUI:SetTheme(themeName)
 end
 
 return LuxUI
---lo
+--lod
