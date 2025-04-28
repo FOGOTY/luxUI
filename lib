@@ -182,7 +182,7 @@ function LuxUI:CreateWatermark()
 	label.Name = "Label"
 	label.Text = self.ScriptName
 	label.Font = Enum.Font.GothamBlack
-	label.TextColor3 = self.Colors.Text
+	label.TextColor3 = Color3.fromRGB(255,255,255)
 	label.TextSize = 16
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.new(1, -15, 1, 0)
@@ -194,7 +194,7 @@ function LuxUI:CreateWatermark()
 	fpsLabel.Name = "FPS"
 	fpsLabel.Text = "0 FPS"
 	fpsLabel.Font = Enum.Font.GothamSemibold
-	fpsLabel.TextColor3 = self.Colors.TextDark
+	fpsLabel.TextColor3 = Color3.fromRGB(255,255,255)Dark
 	fpsLabel.TextSize = 14
 	fpsLabel.BackgroundTransparency = 1
 	fpsLabel.Size = UDim2.new(0, 60, 1, 0)
@@ -293,7 +293,7 @@ function LuxUI:CreateWindow(options)
 	title.Name = "Title"
 	title.Text = options.Title or "LuxUI Window"
 	title.Font = Enum.Font.GothamBlack
-	title.TextColor3 = self.Colors.Text
+	title.TextColor3 = Color3.fromRGB(255,255,255)
 	title.TextSize = 16
 	title.BackgroundTransparency = 1
 	title.Size = UDim2.new(1, -40, 1, 0)
@@ -305,7 +305,7 @@ function LuxUI:CreateWindow(options)
 	close.Name = "Close"
 	close.Text = "×"
 	close.Font = Enum.Font.GothamBold
-	close.TextColor3 = self.Colors.Text
+	close.TextColor3 = Color3.fromRGB(255,255,255)
 	close.TextSize = 18
 	close.BackgroundTransparency = 1
 	close.Size = UDim2.new(0, 35, 1, 0)
@@ -372,7 +372,7 @@ function LuxUI:CreateWindow(options)
 		tab.Button.Name = name
 		tab.Button.Text = name
 		tab.Button.Font = Enum.Font.GothamSemibold
-		tab.Button.TextColor3 = self.Colors.Text
+		tab.Button.TextColor3 = Color3.fromRGB(255,255,255)
 		tab.Button.TextSize = 15
 		tab.Button.BackgroundColor3 = self.Colors.Main
 		tab.Button.BackgroundTransparency = 0.2
@@ -456,7 +456,7 @@ function LuxUI:CreateWindow(options)
 			if section.Title then
 				section.Title.Text = title
 				section.Title.Font = Enum.Font.GothamBlack
-				section.Title.TextColor3 = self.Colors.Text
+				section.Title.TextColor3 = Color3.fromRGB(255,255,255)
 				section.Title.TextSize = 16
 				section.Title.BackgroundTransparency = 1
 				section.Title.Size = UDim2.new(1, -15, 0, 35)
@@ -493,7 +493,7 @@ function LuxUI:CreateWindow(options)
 				button.Name = options.Name or "Button"
 				button.Text = options.Name or "Button"
 				button.Font = Enum.Font.GothamSemibold
-				button.TextColor3 = self.Colors.Text
+				button.TextColor3 = Color3.fromRGB(255,255,255)
 				button.TextSize = 15
 				button.BackgroundColor3 = self.Colors.Main
 				button.BackgroundTransparency = 0.2
@@ -565,7 +565,7 @@ function LuxUI:CreateWindow(options)
 				toggle.Label.Name = "Label"
 				toggle.Label.Text = options.Name or "Toggle"
 				toggle.Label.Font = Enum.Font.GothamSemibold
-				toggle.Label.TextColor3 = self.Colors.Text
+				toggle.Label.TextColor3 = Color3.fromRGB(255,255,255)
 				toggle.Label.TextSize = 15
 				toggle.Label.BackgroundTransparency = 1
 				toggle.Label.Size = UDim2.new(0.7, 0, 1, 0)
@@ -595,7 +595,7 @@ function LuxUI:CreateWindow(options)
 
 				toggle.Indicator = Instance.new("Frame")
 				toggle.Indicator.Name = "Indicator"
-				toggle.Indicator.BackgroundColor3 = self.Colors.Text
+				toggle.Indicator.BackgroundColor3 = Color3.fromRGB(255,255,255)
 				toggle.Indicator.Size = UDim2.new(0, 24, 0, 24)
 				toggle.Indicator.Position = UDim2.new(0, 2, 0.5, -12)
 				toggle.Indicator.Parent = toggle.Button
@@ -667,7 +667,7 @@ function LuxUI:CreateWindow(options)
 				slider.Label.Name = "Label"
 				slider.Label.Text = options.Name or "Slider"
 				slider.Label.Font = Enum.Font.GothamSemibold
-				slider.Label.TextColor3 = self.Colors.Text
+				slider.Label.TextColor3 = Color3.fromRGB(255,255,255)
 				slider.Label.TextSize = 15
 				slider.Label.BackgroundTransparency = 1
 				slider.Label.Size = UDim2.new(1, 0, 0, 25)
@@ -679,7 +679,7 @@ function LuxUI:CreateWindow(options)
 				slider.ValueLabel.Name = "ValueLabel"
 				slider.ValueLabel.Text = tostring(slider.Value)
 				slider.ValueLabel.Font = Enum.Font.GothamSemibold
-				slider.ValueLabel.TextColor3 = self.Colors.TextDark
+				slider.ValueLabel.TextColor3 = Color3.fromRGB(255,255,255)
 				slider.ValueLabel.TextSize = 14
 				slider.ValueLabel.BackgroundTransparency = 1
 				slider.ValueLabel.Size = UDim2.new(0, 100, 0, 25)
@@ -722,7 +722,7 @@ function LuxUI:CreateWindow(options)
 
 				slider.Thumb = Instance.new("Frame")
 				slider.Thumb.Name = "Thumb"
-				slider.Thumb.BackgroundColor3 = self.Colors.Text
+				slider.Thumb.BackgroundColor3 = Color3.fromRGB(255,255,255)
 				slider.Thumb.Size = UDim2.new(0, 16, 0, 16)
 				slider.Thumb.Position = UDim2.new(0, -8, 0.5, -8)
 				slider.Thumb.Parent = slider.Track
@@ -827,7 +827,7 @@ function LuxUI:CreateWindow(options)
 				dropdown.Label.Text = options.Name or "Dropdown"
 				dropdown.Label.Font = Enum.Font.GothamSemibold
 				dropdown.Label.TextSize = 15
-				dropdown.Label.TextColor3 = self.Colors.Text
+				dropdown.Label.TextColor3 = Color3.fromRGB(255,255,255)
 				dropdown.Label.BackgroundTransparency = 1
 				dropdown.Label.Size = UDim2.new(0.7, 0, 1, 0)
 				dropdown.Label.Position = UDim2.new(0, 15, 0, 0)
@@ -838,7 +838,7 @@ function LuxUI:CreateWindow(options)
 				dropdown.ValueLabel.Name = "ValueLabel"
 				dropdown.ValueLabel.Text = dropdown.Value or "None"
 				dropdown.ValueLabel.Font = Enum.Font.GothamSemibold
-				dropdown.ValueLabel.TextColor3 = self.Colors.TextDark
+				dropdown.ValueLabel.TextColor3 = Color3.fromRGB(255,255,255)
 				dropdown.ValueLabel.TextSize = 14
 				dropdown.ValueLabel.BackgroundTransparency = 1
 				dropdown.ValueLabel.Size = UDim2.new(0.3, -15, 1, 0)
@@ -849,7 +849,7 @@ function LuxUI:CreateWindow(options)
 				dropdown.Icon = Instance.new("ImageLabel")
 				dropdown.Icon.Name = "Icon"
 				dropdown.Icon.Image = "rbxassetid://6031094667"
-				dropdown.Icon.ImageColor3 = self.Colors.TextDark
+				dropdown.Icon.ImageColor3 = Color3.fromRGB(255,255,255)
 				dropdown.Icon.BackgroundTransparency = 1
 				dropdown.Icon.Size = UDim2.new(0, 22, 0, 22)
 				dropdown.Icon.Position = UDim2.new(1, -30, 0.5, -11)
@@ -892,7 +892,7 @@ function LuxUI:CreateWindow(options)
 						optionButton.Name = tostring(option)
 						optionButton.Text = tostring(option)
 						optionButton.Font = Enum.Font.GothamSemibold
-						optionButton.TextColor3 = self.Colors.Text
+						optionButton.TextColor3 = Color3.fromRGB(255,255,255)
 						optionButton.TextSize = 15
 						optionButton.BackgroundColor3 = self.Colors.Main
 						optionButton.BackgroundTransparency = 0.2
@@ -1063,7 +1063,7 @@ function LuxUI:CreateWindow(options)
 				keybind.Label.Name = "Label"
 				keybind.Label.Text = options.Name or "Keybind"
 				keybind.Label.Font = Enum.Font.GothamSemibold
-				keybind.Label.TextColor3 = self.Colors.Text
+				keybind.Label.TextColor3 = Color3.fromRGB(255,255,255)
 				keybind.Label.TextSize = 15
 				keybind.Label.BackgroundTransparency = 1
 				keybind.Label.Size = UDim2.new(0.7, 0, 1, 0)
@@ -1075,7 +1075,7 @@ function LuxUI:CreateWindow(options)
 				keybind.Button.Name = "Button"
 				keybind.Button.Text = keybind.Value.Name or "None"
 				keybind.Button.Font = Enum.Font.GothamSemibold
-				keybind.Button.TextColor3 = self.Colors.Text
+				keybind.Button.TextColor3 = Color3.fromRGB(255,255,255)
 				keybind.Button.TextSize = 14
 				keybind.Button.BackgroundColor3 = self.Colors.Main
 				keybind.Button.BackgroundTransparency = 0.2
@@ -1188,7 +1188,7 @@ function LuxUI:CreateWindow(options)
 				label.Name = "Label"
 				label.Text = text or "Label"
 				label.Font = Enum.Font.GothamSemibold
-				label.TextColor3 = self.Colors.Text
+				label.TextColor3 = Color3.fromRGB(255,255,255)
 				label.TextSize = 15
 				label.BackgroundTransparency = 1
 				label.Size = UDim2.new(1, -20, 0, 25)
@@ -1342,7 +1342,7 @@ function LuxUI:Notify(options)
 	title.Name = "Title"
 	title.Text = options.Title or "Notification"
 	title.Font = Enum.Font.GothamBlack
-	title.TextColor3 = self.Colors.Text
+	title.TextColor3 = Color3.fromRGB(255,255,255)
 	title.TextSize = 18
 	title.BackgroundTransparency = 1
 	title.Size = UDim2.new(1, -25, 0, 25)
@@ -1354,7 +1354,7 @@ function LuxUI:Notify(options)
 	content.Name = "Content"
 	content.Text = options.Content or "This is a notification."
 	content.Font = Enum.Font.GothamSemibold
-	content.TextColor3 = self.Colors.TextDark
+	content.TextColor3 = Color3.fromRGB(255,255,255)
 	content.TextSize = 15
 	content.BackgroundTransparency = 1
 	content.Size = UDim2.new(1, -25, 0, 0)
@@ -1394,7 +1394,7 @@ function LuxUI:Notify(options)
 	close.Name = "Close"
 	close.Text = "×"
 	close.Font = Enum.Font.GothamBold
-	close.TextColor3 = self.Colors.Text
+	close.TextColor3 = Color3.fromRGB(255,255,255)
 	close.TextSize = 16
 	close.BackgroundTransparency = 1
 	close.Size = UDim2.new(0, 25, 0, 25)
@@ -1511,3 +1511,4 @@ function LuxUI:SetTheme(themeName)
 end
 
 return LuxUI
+--lol
