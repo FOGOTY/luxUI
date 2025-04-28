@@ -1,0 +1,1361 @@
+--[[
+    LuxUI - A feature-rich animated UI library for Roblox
+    Features:
+    - Smooth animations
+    - Customizable themes
+    - Config saving/loading
+    - Notifications
+    - Keybinds
+    - Watermark
+    - And more!
+]]
+
+local LuxUI = {}
+LuxUI.__index = LuxUI
+
+-- Services
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+-- Configuration
+local config = {
+    ScriptName = "LuxUI Example",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "LuxUI_Configs",
+        FileName = "config.json"
+    },
+    Flags = {}
+}
+
+-- Animation presets
+local animations = {
+    EasingStyles = {
+        Linear = Enum.EasingStyle.Linear,
+        Sine = Enum.EasingStyle.Sine,
+        Back = Enum.EasingStyle.Back,
+        Quad = Enum.EasingStyle.Quad,
+        Quart = Enum.EasingStyle.Quart,
+        Quint = Enum.EasingStyle.Quint,
+        Bounce = Enum.EasingStyle.Bounce,
+        Elastic = Enum.EasingStyle.Elastic
+    },
+    EasingDirections = {
+        In = Enum.EasingDirection.In,
+        Out = Enum.EasingDirection.Out,
+        InOut = Enum.EasingDirection.InOut
+    }
+}
+
+-- Theme colors
+local themes = {
+    Default = {
+        Main = Color3.fromRGB(25, 25, 25),
+        Secondary = Color3.fromRGB(30, 30, 30),
+        Accent = Color3.fromRGB(0, 170, 255),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextDark = Color3.fromRGB(150, 150, 150)
+    },
+    Dark = {
+        Main = Color3.fromRGB(15, 15, 15),
+        Secondary = Color3.fromRGB(20, 20, 20),
+        Accent = Color3.fromRGB(255, 85, 0),
+        Text = Color3.fromRGB(240, 240, 240),
+        TextDark = Color3.fromRGB(130, 130, 130)
+    },
+    Light = {
+        Main = Color3.fromRGB(240, 240, 240),
+        Secondary = Color3.fromRGB(220, 220, 220),
+        Accent = Color3.fromRGB(0, 120, 215),
+        Text = Color3.fromRGB(30, 30, 30),
+        TextDark = Color3.fromRGB(100, 100, 100)
+    }
+}
+
+-- Create base UI function
+function LuxUI.new(options)
+    options = options or {}
+    
+    local self = setmetatable({}, LuxUI)
+    
+    -- Apply configuration
+    self.ScriptName = options.ScriptName or config.ScriptName
+    self.ConfigurationSaving = options.ConfigurationSaving or config.ConfigurationSaving
+    self.Theme = options.Theme or "Default"
+    self.AnimationSpeed = options.AnimationSpeed or 0.2
+    
+    -- Create flags table
+    self.Flags = {}
+    
+    -- Create main UI elements
+    self:CreateUI()
+    
+    -- Load configuration if enabled
+    if self.ConfigurationSaving.Enabled then
+        self:LoadConfiguration()
+    end
+    
+    return self
+end
+
+-- UI Creation Functions
+function LuxUI:CreateUI()
+    -- Create ScreenGui
+    self.ScreenGui = Instance.new("ScreenGui")
+    self.ScreenGui.Name = "LuxUI_" .. HttpService:GenerateGUID(false)
+    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    self.ScreenGui.ResetOnSpawn = false
+    self.ScreenGui.Parent = game:GetService("CoreGui")
+    
+    -- Create watermark
+    self:CreateWatermark()
+    
+    -- Create main window
+    self.MainWindow = self:CreateWindow({
+        Title = self.ScriptName,
+        Size = UDim2.new(0, 500, 0, 400),
+        Position = UDim2.new(0.5, -250, 0.5, -200)
+    })
+    
+    -- Create notification holder
+    self.NotificationHolder = Instance.new("Frame")
+    self.NotificationHolder.Name = "NotificationHolder"
+    self.NotificationHolder.BackgroundTransparency = 1
+    self.NotificationHolder.Size = UDim2.new(1, 0, 1, 0)
+    self.NotificationHolder.Parent = self.ScreenGui
+    
+    -- Apply theme
+    self:ApplyTheme(self.Theme)
+end
+
+function LuxUI:CreateWatermark()
+    self.Watermark = Instance.new("Frame")
+    self.Watermark.Name = "Watermark"
+    self.Watermark.BackgroundColor3 = themes[self.Theme].Main
+    self.Watermark.BackgroundTransparency = 0.2
+    self.Watermark.Size = UDim2.new(0, 200, 0, 30)
+    self.Watermark.Position = UDim2.new(0, 10, 0, 10)
+    self.Watermark.Parent = self.ScreenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = self.Watermark
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Color = themes[self.Theme].Accent
+    stroke.Thickness = 1
+    stroke.Parent = self.Watermark
+    
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Text = self.ScriptName
+    label.Font = Enum.Font.GothamSemibold
+    label.TextColor3 = themes[self.Theme].Text
+    label.TextSize = 14
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1, -10, 1, 0)
+    label.Position = UDim2.new(0, 10, 0, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = self.Watermark
+    
+    local fpsLabel = Instance.new("TextLabel")
+    fpsLabel.Name = "FPS"
+    fpsLabel.Text = "0 FPS"
+    fpsLabel.Font = Enum.Font.GothamSemibold
+    fpsLabel.TextColor3 = themes[self.Theme].TextDark
+    fpsLabel.TextSize = 14
+    fpsLabel.BackgroundTransparency = 1
+    fpsLabel.Size = UDim2.new(0, 50, 1, 0)
+    fpsLabel.Position = UDim2.new(1, -50, 0, 0)
+    fpsLabel.TextXAlignment = Enum.TextXAlignment.Right
+    fpsLabel.Parent = self.Watermark
+    
+    -- FPS counter
+    local lastTick = tick()
+    local frames = 0
+    RunService.Heartbeat:Connect(function()
+        frames = frames + 1
+        if tick() - lastTick >= 1 then
+            fpsLabel.Text = math.floor(frames) .. " FPS"
+            frames = 0
+            lastTick = tick()
+        end
+    end)
+    
+    -- Make draggable
+    self:MakeDraggable(self.Watermark)
+end
+
+function LuxUI:CreateWindow(options)
+    options = options or {}
+    
+    local window = {}
+    
+    -- Create main frame
+    window.Main = Instance.new("Frame")
+    window.Main.Name = "Window"
+    window.Main.BackgroundColor3 = themes[self.Theme].Main
+    window.Main.Size = options.Size or UDim2.new(0, 500, 0, 400)
+    window.Main.Position = options.Position or UDim2.new(0.5, -250, 0.5, -200)
+    window.Main.Parent = self.ScreenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = window.Main
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Color = themes[self.Theme].Accent
+    stroke.Thickness = 1
+    stroke.Parent = window.Main
+    
+    -- Create title bar
+    window.TitleBar = Instance.new("Frame")
+    window.TitleBar.Name = "TitleBar"
+    window.TitleBar.BackgroundColor3 = themes[self.Theme].Secondary
+    window.TitleBar.Size = UDim2.new(1, 0, 0, 30)
+    window.TitleBar.Position = UDim2.new(0, 0, 0, 0)
+    window.TitleBar.Parent = window.Main
+    
+    local topCorner = Instance.new("UICorner")
+    topCorner.CornerRadius = UDim.new(0, 6)
+    topCorner.Parent = window.TitleBar
+    
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Text = options.Title or "LuxUI Window"
+    title.Font = Enum.Font.GothamSemibold
+    title.TextColor3 = themes[self.Theme].Text
+    title.TextSize = 14
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(1, -40, 1, 0)
+    title.Position = UDim2.new(0, 10, 0, 0)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = window.TitleBar
+    
+    local close = Instance.new("TextButton")
+    close.Name = "Close"
+    close.Text = "X"
+    close.Font = Enum.Font.GothamBold
+    close.TextColor3 = themes[self.Theme].Text
+    close.TextSize = 14
+    close.BackgroundTransparency = 1
+    close.Size = UDim2.new(0, 30, 1, 0)
+    close.Position = UDim2.new(1, -30, 0, 0)
+    close.Parent = window.TitleBar
+    
+    close.MouseButton1Click:Connect(function()
+        self:Tween(window.Main, {Size = UDim2.new(0, 0, 0, 0)}, 0.2, function()
+            window.Main.Visible = false
+        end)
+    end)
+    
+    -- Create tab holder
+    window.TabHolder = Instance.new("Frame")
+    window.TabHolder.Name = "TabHolder"
+    window.TabHolder.BackgroundColor3 = themes[self.Theme].Secondary
+    window.TabHolder.Size = UDim2.new(0, 120, 1, -30)
+    window.TabHolder.Position = UDim2.new(0, 0, 0, 30)
+    window.TabHolder.Parent = window.Main
+    
+    local tabList = Instance.new("UIListLayout")
+    tabList.Name = "TabList"
+    tabList.Padding = UDim.new(0, 5)
+    tabList.SortOrder = Enum.SortOrder.LayoutOrder
+    tabList.Parent = window.TabHolder
+    
+    -- Create content frame
+    window.Content = Instance.new("Frame")
+    window.Content.Name = "Content"
+    window.Content.BackgroundColor3 = themes[self.Theme].Main
+    window.Content.Size = UDim2.new(1, -120, 1, -30)
+    window.Content.Position = UDim2.new(0, 120, 0, 30)
+    window.Content.Parent = window.Main
+    
+    local contentCorner = Instance.new("UICorner")
+    contentCorner.CornerRadius = UDim.new(0, 6)
+    contentCorner.Parent = window.Content
+    
+    -- Make draggable
+    self:MakeDraggable(window.Main, window.TitleBar)
+    
+    -- Window methods
+    function window:AddTab(name)
+        local tab = {}
+        
+        -- Create tab button
+        tab.Button = Instance.new("TextButton")
+        tab.Button.Name = name
+        tab.Button.Text = name
+        tab.Button.Font = Enum.Font.GothamSemibold
+        tab.Button.TextColor3 = themes[self.Theme].Text
+        tab.Button.TextSize = 14
+        tab.Button.BackgroundColor3 = themes[self.Theme].Main
+        tab.Button.Size = UDim2.new(1, -10, 0, 30)
+        tab.Button.Position = UDim2.new(0, 5, 0, 5)
+        tab.Button.Parent = window.TabHolder
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = tab.Button
+        
+        -- Create tab content
+        tab.Content = Instance.new("Frame")
+        tab.Content.Name = name
+        tab.Content.BackgroundTransparency = 1
+        tab.Content.Size = UDim2.new(1, 0, 1, 0)
+        tab.Content.Position = UDim2.new(0, 0, 0, 0)
+        tab.Content.Visible = false
+        tab.Content.Parent = window.Content
+        
+        local tabList = Instance.new("UIListLayout")
+        tabList.Name = "TabList"
+        tabList.Padding = UDim.new(0, 10)
+        tabList.SortOrder = Enum.SortOrder.LayoutOrder
+        tabList.Parent = tab.Content
+        
+        -- Tab selection logic
+        tab.Button.MouseButton1Click:Connect(function()
+            for _, otherTab in pairs(window.Tabs or {}) do
+                otherTab.Content.Visible = false
+                self:Tween(otherTab.Button, {BackgroundColor3 = themes[self.Theme].Main}, 0.2)
+            end
+            
+            tab.Content.Visible = true
+            self:Tween(tab.Button, {BackgroundColor3 = themes[self.Theme].Accent}, 0.2)
+        end)
+        
+        -- Tab methods
+        function tab:AddSection(title)
+            local section = {}
+            
+            -- Create section
+            section.Main = Instance.new("Frame")
+            section.Main.Name = title
+            section.Main.BackgroundColor3 = themes[self.Theme].Secondary
+            section.Main.Size = UDim2.new(1, -20, 0, 0)
+            section.Main.Position = UDim2.new(0, 10, 0, 10)
+            section.Main.Parent = tab.Content
+            
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0, 6)
+            corner.Parent = section.Main
+            
+            local stroke = Instance.new("UIStroke")
+            stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            stroke.Color = themes[self.Theme].Accent
+            stroke.Thickness = 1
+            stroke.Parent = section.Main
+            
+            -- Section title
+            section.Title = Instance.new("TextLabel")
+            section.Title.Name = "Title"
+            section.Title.Text = title
+            section.Title.Font = Enum.Font.GothamBold
+            section.Title.TextColor3 = themes[self.Theme].Text
+            section.Title.TextSize = 14
+            section.Title.BackgroundTransparency = 1
+            section.Title.Size = UDim2.new(1, -10, 0, 30)
+            section.Title.Position = UDim2.new(0, 10, 0, 0)
+            section.Title.TextXAlignment = Enum.TextXAlignment.Left
+            section.Title.Parent = section.Main
+            
+            -- Content layout
+            section.Content = Instance.new("Frame")
+            section.Content.Name = "Content"
+            section.Content.BackgroundTransparency = 1
+            section.Content.Size = UDim2.new(1, 0, 1, -40)
+            section.Content.Position = UDim2.new(0, 0, 0, 40)
+            section.Content.Parent = section.Main
+            
+            local listLayout = Instance.new("UIListLayout")
+            listLayout.Name = "ListLayout"
+            listLayout.Padding = UDim.new(0, 10)
+            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            listLayout.Parent = section.Content
+            
+            -- Auto-size section
+            listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                section.Main.Size = UDim2.new(1, -20, 0, listLayout.AbsoluteContentSize.Y + 50)
+            end)
+            
+            -- Section methods
+            function section:AddButton(options)
+                options = options or {}
+                
+                local button = Instance.new("TextButton")
+                button.Name = options.Name or "Button"
+                button.Text = options.Name or "Button"
+                button.Font = Enum.Font.GothamSemibold
+                button.TextColor3 = themes[self.Theme].Text
+                button.TextSize = 14
+                button.BackgroundColor3 = themes[self.Theme].Main
+                button.AutoButtonColor = false
+                button.Size = UDim2.new(1, -20, 0, 30)
+                button.Position = UDim2.new(0, 10, 0, 0)
+                button.Parent = section.Content
+                
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 6)
+                corner.Parent = button
+                
+                local stroke = Instance.new("UIStroke")
+                stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                stroke.Color = themes[self.Theme].Accent
+                stroke.Thickness = 1
+                stroke.Parent = button
+                
+                -- Button animation
+                button.MouseEnter:Connect(function()
+                    self:Tween(button, {BackgroundColor3 = themes[self.Theme].Accent}, 0.2)
+                end)
+                
+                button.MouseLeave:Connect(function()
+                    self:Tween(button, {BackgroundColor3 = themes[self.Theme].Main}, 0.2)
+                end)
+                
+                button.MouseButton1Click:Connect(function()
+                    if options.Callback then
+                        options.Callback()
+                    end
+                end)
+                
+                return button
+            end
+            
+            function section:AddToggle(options)
+                options = options or {}
+                
+                local toggle = {}
+                toggle.Value = options.Default or false
+                
+                -- Create toggle frame
+                toggle.Main = Instance.new("Frame")
+                toggle.Main.Name = options.Name or "Toggle"
+                toggle.Main.BackgroundTransparency = 1
+                toggle.Main.Size = UDim2.new(1, -20, 0, 30)
+                toggle.Main.Position = UDim2.new(0, 10, 0, 0)
+                toggle.Main.Parent = section.Content
+                
+                -- Toggle label
+                toggle.Label = Instance.new("TextLabel")
+                toggle.Label.Name = "Label"
+                toggle.Label.Text = options.Name or "Toggle"
+                toggle.Label.Font = Enum.Font.GothamSemibold
+                toggle.Label.TextColor3 = themes[self.Theme].Text
+                toggle.Label.TextSize = 14
+                toggle.Label.BackgroundTransparency = 1
+                toggle.Label.Size = UDim2.new(0.7, 0, 1, 0)
+                toggle.Label.Position = UDim2.new(0, 0, 0, 0)
+                toggle.Label.TextXAlignment = Enum.TextXAlignment.Left
+                toggle.Label.Parent = toggle.Main
+                
+                -- Toggle button
+                toggle.Button = Instance.new("TextButton")
+                toggle.Button.Name = "Button"
+                toggle.Button.Text = ""
+                toggle.Button.BackgroundColor3 = themes[self.Theme].Main
+                toggle.Button.AutoButtonColor = false
+                toggle.Button.Size = UDim2.new(0, 50, 0, 25)
+                toggle.Button.Position = UDim2.new(1, -50, 0.5, -12.5)
+                toggle.Button.Parent = toggle.Main
+                
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 12)
+                corner.Parent = toggle.Button
+                
+                local stroke = Instance.new("UIStroke")
+                stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                stroke.Color = themes[self.Theme].Accent
+                stroke.Thickness = 1
+                stroke.Parent = toggle.Button
+                
+                -- Toggle indicator
+                toggle.Indicator = Instance.new("Frame")
+                toggle.Indicator.Name = "Indicator"
+                toggle.Indicator.BackgroundColor3 = themes[self.Theme].Text
+                toggle.Indicator.Size = UDim2.new(0, 21, 0, 21)
+                toggle.Indicator.Position = UDim2.new(0, 2, 0.5, -10.5)
+                toggle.Indicator.Parent = toggle.Button
+                
+                local indicatorCorner = Instance.new("UICorner")
+                indicatorCorner.CornerRadius = UDim.new(0, 12)
+                indicatorCorner.Parent = toggle.Indicator
+                
+                -- Update appearance
+                local function update()
+                    if toggle.Value then
+                        self:Tween(toggle.Indicator, {Position = UDim2.new(1, -23, 0.5, -10.5)}, 0.2)
+                        self:Tween(toggle.Button, {BackgroundColor3 = themes[self.Theme].Accent}, 0.2)
+                    else
+                        self:Tween(toggle.Indicator, {Position = UDim2.new(0, 2, 0.5, -10.5)}, 0.2)
+                        self:Tween(toggle.Button, {BackgroundColor3 = themes[self.Theme].Main}, 0.2)
+                    end
+                end
+                
+                update()
+                
+                -- Toggle click
+                toggle.Button.MouseButton1Click:Connect(function()
+                    toggle.Value = not toggle.Value
+                    update()
+                    
+                    if options.Callback then
+                        options.Callback(toggle.Value)
+                    end
+                    
+                    -- Save to flags if flag name provided
+                    if options.Flag then
+                        self.Flags[options.Flag] = toggle.Value
+                    end
+                end)
+                
+                -- Add to flags
+                if options.Flag then
+                    self.Flags[options.Flag] = toggle.Value
+                end
+                
+                return toggle
+            end
+            
+            function section:AddSlider(options)
+                options = options or {}
+                
+                local slider = {}
+                slider.Value = options.Default or options.Min or 0
+                slider.Min = options.Min or 0
+                slider.Max = options.Max or 100
+                slider.Precision = options.Precision or 1
+                
+                -- Create slider frame
+                slider.Main = Instance.new("Frame")
+                slider.Main.Name = options.Name or "Slider"
+                slider.Main.BackgroundTransparency = 1
+                slider.Main.Size = UDim2.new(1, -20, 0, 50)
+                slider.Main.Position = UDim2.new(0, 10, 0, 0)
+                slider.Main.Parent = section.Content
+                
+                -- Slider label
+                slider.Label = Instance.new("TextLabel")
+                slider.Label.Name = "Label"
+                slider.Label.Text = options.Name or "Slider"
+                slider.Label.Font = Enum.Font.GothamSemibold
+                slider.Label.TextColor3 = themes[self.Theme].Text
+                slider.Label.TextSize = 14
+                slider.Label.BackgroundTransparency = 1
+                slider.Label.Size = UDim2.new(1, 0, 0, 20)
+                slider.Label.Position = UDim2.new(0, 0, 0, 0)
+                slider.Label.TextXAlignment = Enum.TextXAlignment.Left
+                slider.Label.Parent = slider.Main
+                
+                -- Slider value display
+                slider.ValueLabel = Instance.new("TextLabel")
+                slider.ValueLabel.Name = "ValueLabel"
+                slider.ValueLabel.Text = tostring(slider.Value)
+                slider.ValueLabel.Font = Enum.Font.GothamSemibold
+                slider.ValueLabel.TextColor3 = themes[self.Theme].TextDark
+                slider.ValueLabel.TextSize = 14
+                slider.ValueLabel.BackgroundTransparency = 1
+                slider.ValueLabel.Size = UDim2.new(0, 100, 0, 20)
+                slider.ValueLabel.Position = UDim2.new(1, -100, 0, 0)
+                slider.ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+                slider.ValueLabel.Parent = slider.Main
+                
+                -- Slider track
+                slider.Track = Instance.new("Frame")
+                slider.Track.Name = "Track"
+                slider.Track.BackgroundColor3 = themes[self.Theme].Main
+                slider.Track.Size = UDim2.new(1, 0, 0, 5)
+                slider.Track.Position = UDim2.new(0, 0, 1, -15)
+                slider.Track.Parent = slider.Main
+                
+                local trackCorner = Instance.new("UICorner")
+                trackCorner.CornerRadius = UDim.new(0, 3)
+                trackCorner.Parent = slider.Track
+                
+                local trackStroke = Instance.new("UIStroke")
+                trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                trackStroke.Color = themes[self.Theme].Accent
+                trackStroke.Thickness = 1
+                trackStroke.Parent = slider.Track
+                
+                -- Slider fill
+                slider.Fill = Instance.new("Frame")
+                slider.Fill.Name = "Fill"
+                slider.Fill.BackgroundColor3 = themes[self.Theme].Accent
+                slider.Fill.Size = UDim2.new(0, 0, 1, 0)
+                slider.Fill.Position = UDim2.new(0, 0, 0, 0)
+                slider.Fill.Parent = slider.Track
+                
+                local fillCorner = Instance.new("UICorner")
+                fillCorner.CornerRadius = UDim.new(0, 3)
+                fillCorner.Parent = slider.Fill
+                
+                -- Slider thumb
+                slider.Thumb = Instance.new("Frame")
+                slider.Thumb.Name = "Thumb"
+                slider.Thumb.BackgroundColor3 = themes[self.Theme].Text
+                slider.Thumb.Size = UDim2.new(0, 15, 0, 15)
+                slider.Thumb.Position = UDim2.new(0, -7.5, 0.5, -7.5)
+                slider.Thumb.Parent = slider.Track
+                
+                local thumbCorner = Instance.new("UICorner")
+                thumbCorner.CornerRadius = UDim.new(0, 7.5)
+                thumbCorner.Parent = slider.Thumb
+                
+                -- Update slider
+                local function update()
+                    local percent = (slider.Value - slider.Min) / (slider.Max - slider.Min)
+                    slider.Fill.Size = UDim2.new(percent, 0, 1, 0)
+                    slider.Thumb.Position = UDim2.new(percent, -7.5, 0.5, -7.5)
+                    slider.ValueLabel.Text = tostring(slider.Value)
+                    
+                    if options.Callback then
+                        options.Callback(slider.Value)
+                    end
+                    
+                    -- Save to flags if flag name provided
+                    if options.Flag then
+                        self.Flags[options.Flag] = slider.Value
+                    end
+                end
+                
+                -- Initialize
+                update()
+                
+                -- Slider dragging
+                local dragging = false
+                
+                slider.Track.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        
+                        local percent = (input.Position.X - slider.Track.AbsolutePosition.X) / slider.Track.AbsoluteSize.X
+                        percent = math.clamp(percent, 0, 1)
+                        
+                        slider.Value = math.floor((slider.Min + (slider.Max - slider.Min) * percent) * (10 ^ slider.Precision)) / (10 ^ slider.Precision)
+                        update()
+                    end
+                end)
+                
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+                
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local percent = (input.Position.X - slider.Track.AbsolutePosition.X) / slider.Track.AbsoluteSize.X
+                        percent = math.clamp(percent, 0, 1)
+                        
+                        slider.Value = math.floor((slider.Min + (slider.Max - slider.Min) * percent) * (10 ^ slider.Precision)) / (10 ^ slider.Precision)
+                        update()
+                    end
+                end)
+                
+                -- Add to flags
+                if options.Flag then
+                    self.Flags[options.Flag] = slider.Value
+                end
+                
+                return slider
+            end
+            
+            function section:AddDropdown(options)
+                options = options or {}
+                
+                local dropdown = {}
+                dropdown.Value = options.Default or nil
+                dropdown.Options = options.Options or {}
+                dropdown.Open = false
+                
+                -- Create dropdown frame
+                dropdown.Main = Instance.new("Frame")
+                dropdown.Main.Name = options.Name or "Dropdown"
+                dropdown.Main.BackgroundTransparency = 1
+                dropdown.Main.Size = UDim2.new(1, -20, 0, 30)
+                dropdown.Main.Position = UDim2.new(0, 10, 0, 0)
+                dropdown.Main.ClipsDescendants = true
+                dropdown.Main.Parent = section.Content
+                
+                -- Dropdown button
+                dropdown.Button = Instance.new("TextButton")
+                dropdown.Button.Name = "Button"
+                dropdown.Button.Text = ""
+                dropdown.Button.BackgroundColor3 = themes[self.Theme].Main
+                dropdown.Button.AutoButtonColor = false
+                dropdown.Button.Size = UDim2.new(1, 0, 0, 30)
+                dropdown.Button.Position = UDim2.new(0, 0, 0, 0)
+                dropdown.Button.Parent = dropdown.Main
+                
+                local buttonCorner = Instance.new("UICorner")
+                buttonCorner.CornerRadius = UDim.new(0, 6)
+                buttonCorner.Parent = dropdown.Button
+                
+                local buttonStroke = Instance.new("UIStroke")
+                buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                buttonStroke.Color = themes[self.Theme].Accent
+                buttonStroke.Thickness = 1
+                buttonStroke.Parent = dropdown.Button
+                
+                -- Dropdown label
+                dropdown.Label = Instance.new("TextLabel")
+                dropdown.Label.Name = "Label"
+                dropdown.Label.Text = options.Name or "Dropdown"
+                dropdown.Label.Font = Enum.Font.GothamSemibold
+                dropdown.Label.TextColor3 = themes[self.Theme].Text
+                dropdown.Label.TextSize = 14
+                dropdown.Label.BackgroundTransparency = 1
+                dropdown.Label.Size = UDim2.new(0.7, 0, 1, 0)
+                dropdown.Label.Position = UDim2.new(0, 10, 0, 0)
+                dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
+                dropdown.Label.Parent = dropdown.Button
+                
+                -- Dropdown value
+                dropdown.ValueLabel = Instance.new("TextLabel")
+                dropdown.ValueLabel.Name = "ValueLabel"
+                dropdown.ValueLabel.Text = dropdown.Value or "None"
+                dropdown.ValueLabel.Font = Enum.Font.GothamSemibold
+                dropdown.ValueLabel.TextColor3 = themes[self.Theme].TextDark
+                dropdown.ValueLabel.TextSize = 14
+                dropdown.ValueLabel.BackgroundTransparency = 1
+                dropdown.ValueLabel.Size = UDim2.new(0.3, -10, 1, 0)
+                dropdown.ValueLabel.Position = UDim2.new(0.7, 0, 0, 0)
+                dropdown.ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+                dropdown.ValueLabel.Parent = dropdown.Button
+                
+                -- Dropdown icon
+                dropdown.Icon = Instance.new("ImageLabel")
+                dropdown.Icon.Name = "Icon"
+                dropdown.Icon.Image = "rbxassetid://6031094667" -- Down arrow icon
+                dropdown.Icon.ImageColor3 = themes[self.Theme].TextDark
+                dropdown.Icon.BackgroundTransparency = 1
+                dropdown.Icon.Size = UDim2.new(0, 20, 0, 20)
+                dropdown.Icon.Position = UDim2.new(1, -25, 0.5, -10)
+                dropdown.Icon.Parent = dropdown.Button
+                
+                -- Dropdown list
+                dropdown.List = Instance.new("Frame")
+                dropdown.List.Name = "List"
+                dropdown.List.BackgroundColor3 = themes[self.Theme].Secondary
+                dropdown.List.Size = UDim2.new(1, 0, 0, 0)
+                dropdown.List.Position = UDim2.new(0, 0, 0, 35)
+                dropdown.List.Visible = false
+                dropdown.List.Parent = dropdown.Main
+                
+                local listCorner = Instance.new("UICorner")
+                listCorner.CornerRadius = UDim.new(0, 6)
+                listCorner.Parent = dropdown.List
+                
+                local listStroke = Instance.new("UIStroke")
+                listStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                listStroke.Color = themes[self.Theme].Accent
+                listStroke.Thickness = 1
+                listStroke.Parent = dropdown.List
+                
+                local listLayout = Instance.new("UIListLayout")
+                listLayout.Name = "ListLayout"
+                listLayout.Padding = UDim.new(0, 5)
+                listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+                listLayout.Parent = dropdown.List
+                
+                -- Create options
+                local function createOptions()
+                    -- Clear existing options
+                    for _, child in ipairs(dropdown.List:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            child:Destroy()
+                        end
+                    end
+                    
+                    -- Add new options
+                    for _, option in ipairs(dropdown.Options) do
+                        local optionButton = Instance.new("TextButton")
+                        optionButton.Name = option
+                        optionButton.Text = option
+                        optionButton.Font = Enum.Font.GothamSemibold
+                        optionButton.TextColor3 = themes[self.Theme].Text
+                        optionButton.TextSize = 14
+                        optionButton.BackgroundColor3 = themes[self.Theme].Main
+                        optionButton.AutoButtonColor = false
+                        optionButton.Size = UDim2.new(1, -10, 0, 30)
+                        optionButton.Position = UDim2.new(0, 5, 0, 5)
+                        optionButton.LayoutOrder = _
+                        optionButton.Parent = dropdown.List
+                        
+                        local optionCorner = Instance.new("UICorner")
+                        optionCorner.CornerRadius = UDim.new(0, 6)
+                        optionCorner.Parent = optionButton
+                        
+                        -- Hover effect
+                        optionButton.MouseEnter:Connect(function()
+                            self:Tween(optionButton, {BackgroundColor3 = themes[self.Theme].Accent}, 0.2)
+                        end)
+                        
+                        optionButton.MouseLeave:Connect(function()
+                            self:Tween(optionButton, {BackgroundColor3 = themes[self.Theme].Main}, 0.2)
+                        end)
+                        
+                        -- Select option
+                        optionButton.MouseButton1Click:Connect(function()
+                            dropdown.Value = option
+                            dropdown.ValueLabel.Text = option
+                            dropdown.Open = false
+                            
+                            self:Tween(dropdown.List, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, function()
+                                dropdown.List.Visible = false
+                            end)
+                            
+                            self:Tween(dropdown.Icon, {Rotation = 0}, 0.2)
+                            
+                            if options.Callback then
+                                options.Callback(option)
+                            end
+                            
+                            -- Save to flags if flag name provided
+                            if options.Flag then
+                                self.Flags[options.Flag] = option
+                            end
+                        end)
+                    end
+                    
+                    -- Update list size
+                    local listHeight = #dropdown.Options * 35 + 5
+                    dropdown.List.Size = UDim2.new(1, 0, 0, listHeight)
+                end
+                
+                -- Initialize options
+                createOptions()
+                
+                -- Toggle dropdown
+                dropdown.Button.MouseButton1Click:Connect(function()
+                    dropdown.Open = not dropdown.Open
+                    
+                    if dropdown.Open then
+                        dropdown.List.Visible = true
+                        self:Tween(dropdown.List, {Size = UDim2.new(1, 0, 0, #dropdown.Options * 35 + 5)}, 0.2)
+                        self:Tween(dropdown.Icon, {Rotation = 180}, 0.2)
+                    else
+                        self:Tween(dropdown.List, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, function()
+                            dropdown.List.Visible = false
+                        end)
+                        self:Tween(dropdown.Icon, {Rotation = 0}, 0.2)
+                    end
+                end)
+                
+                -- Close dropdown when clicking outside
+                UserInputService.InputBegan:Connect(function(input)
+                    if dropdown.Open and input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        local mousePos = input.Position
+                        local absolutePos = dropdown.Main.AbsolutePosition
+                        local absoluteSize = dropdown.Main.AbsoluteSize
+                        
+                        if not (mousePos.X >= absolutePos.X and mousePos.X <= absolutePos.X + absoluteSize.X and
+                               mousePos.Y >= absolutePos.Y and mousePos.Y <= absolutePos.Y + absoluteSize.Y) then
+                            dropdown.Open = false
+                            self:Tween(dropdown.List, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, function()
+                                dropdown.List.Visible = false
+                            end)
+                            self:Tween(dropdown.Icon, {Rotation = 0}, 0.2)
+                        end
+                    end
+                end)
+                
+                -- Add to flags
+                if options.Flag then
+                    self.Flags[options.Flag] = dropdown.Value
+                end
+                
+                -- Dropdown methods
+                function dropdown:SetOptions(newOptions)
+                    dropdown.Options = newOptions
+                    createOptions()
+                end
+                
+                function dropdown:SetValue(newValue)
+                    if table.find(dropdown.Options, newValue) then
+                        dropdown.Value = newValue
+                        dropdown.ValueLabel.Text = newValue
+                        
+                        if options.Callback then
+                            options.Callback(newValue)
+                        end
+                        
+                        -- Save to flags if flag name provided
+                        if options.Flag then
+                            self.Flags[options.Flag] = newValue
+                        end
+                    end
+                end
+                
+                return dropdown
+            end
+            
+            function section:AddKeybind(options)
+                options = options or {}
+                
+                local keybind = {}
+                keybind.Value = options.Default or Enum.KeyCode.Unknown
+                keybind.Listening = false
+                
+                -- Create keybind frame
+                keybind.Main = Instance.new("Frame")
+                keybind.Main.Name = options.Name or "Keybind"
+                keybind.Main.BackgroundTransparency = 1
+                keybind.Main.Size = UDim2.new(1, -20, 0, 30)
+                keybind.Main.Position = UDim2.new(0, 10, 0, 0)
+                keybind.Main.Parent = section.Content
+                
+                -- Keybind label
+                keybind.Label = Instance.new("TextLabel")
+                keybind.Label.Name = "Label"
+                keybind.Label.Text = options.Name or "Keybind"
+                keybind.Label.Font = Enum.Font.GothamSemibold
+                keybind.Label.TextColor3 = themes[self.Theme].Text
+                keybind.Label.TextSize = 14
+                keybind.Label.BackgroundTransparency = 1
+                keybind.Label.Size = UDim2.new(0.7, 0, 1, 0)
+                keybind.Label.Position = UDim2.new(0, 0, 0, 0)
+                keybind.Label.TextXAlignment = Enum.TextXAlignment.Left
+                keybind.Label.Parent = keybind.Main
+                
+                -- Keybind button
+                keybind.Button = Instance.new("TextButton")
+                keybind.Button.Name = "Button"
+                keybind.Button.Text = keybind.Value.Name or "None"
+                keybind.Button.Font = Enum.Font.GothamSemibold
+                keybind.Button.TextColor3 = themes[self.Theme].Text
+                keybind.Button.TextSize = 14
+                keybind.Button.BackgroundColor3 = themes[self.Theme].Main
+                keybind.Button.AutoButtonColor = false
+                keybind.Button.Size = UDim2.new(0, 100, 0, 25)
+                keybind.Button.Position = UDim2.new(1, -100, 0.5, -12.5)
+                keybind.Button.Parent = keybind.Main
+                
+                local buttonCorner = Instance.new("UICorner")
+                buttonCorner.CornerRadius = UDim.new(0, 6)
+                buttonCorner.Parent = keybind.Button
+                
+                local buttonStroke = Instance.new("UIStroke")
+                buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                buttonStroke.Color = themes[self.Theme].Accent
+                buttonStroke.Thickness = 1
+                buttonStroke.Parent = keybind.Button
+                
+                -- Keybind input connection
+                local inputConnection
+                
+                -- Toggle listening
+                local function toggleListening()
+                    keybind.Listening = not keybind.Listening
+                    
+                    if keybind.Listening then
+                        keybind.Button.Text = "..."
+                        self:Tween(keybind.Button, {BackgroundColor3 = themes[self.Theme].Accent}, 0.2)
+                        
+                        inputConnection = UserInputService.InputBegan:Connect(function(input)
+                            if input.UserInputType == Enum.UserInputType.Keyboard then
+                                keybind.Value = input.KeyCode
+                                keybind.Button.Text = input.KeyCode.Name
+                                keybind.Listening = false
+                                
+                                self:Tween(keybind.Button, {BackgroundColor3 = themes[self.Theme].Main}, 0.2)
+                                
+                                if options.Callback then
+                                    options.Callback(input.KeyCode)
+                                end
+                                
+                                -- Save to flags if flag name provided
+                                if options.Flag then
+                                    self.Flags[options.Flag] = input.KeyCode
+                                end
+                                
+                                inputConnection:Disconnect()
+                            end
+                        end)
+                    else
+                        if inputConnection then
+                            inputConnection:Disconnect()
+                        end
+                        
+                        keybind.Button.Text = keybind.Value.Name or "None"
+                        self:Tween(keybind.Button, {BackgroundColor3 = themes[self.Theme].Main}, 0.2)
+                    end
+                end
+                
+                -- Button click
+                keybind.Button.MouseButton1Click:Connect(toggleListening)
+                
+                -- Add to flags
+                if options.Flag then
+                    self.Flags[options.Flag] = keybind.Value
+                end
+                
+                -- Keybind methods
+                function keybind:SetKey(newKey)
+                    keybind.Value = newKey
+                    keybind.Button.Text = newKey.Name or "None"
+                    
+                    if options.Callback then
+                        options.Callback(newKey)
+                    end
+                    
+                    -- Save to flags if flag name provided
+                    if options.Flag then
+                        self.Flags[options.Flag] = newKey
+                    end
+                end
+                
+                return keybind
+            end
+            
+            function section:AddLabel(text)
+                local label = Instance.new("TextLabel")
+                label.Name = "Label"
+                label.Text = text or "Label"
+                label.Font = Enum.Font.GothamSemibold
+                label.TextColor3 = themes[self.Theme].Text
+                label.TextSize = 14
+                label.BackgroundTransparency = 1
+                label.Size = UDim2.new(1, -20, 0, 20)
+                label.Position = UDim2.new(0, 10, 0, 0)
+                label.TextXAlignment = Enum.TextXAlignment.Left
+                label.Parent = section.Content
+                
+                return label
+            end
+            
+            return section
+        end
+        
+        -- Store tabs
+        window.Tabs = window.Tabs or {}
+        table.insert(window.Tabs, tab)
+        
+        -- Select first tab by default
+        if #window.Tabs == 1 then
+            tab.Button.BackgroundColor3 = themes[self.Theme].Accent
+            tab.Content.Visible = true
+        end
+        
+        return tab
+    end
+    
+    return window
+end
+
+-- Utility Functions
+function LuxUI:Tween(instance, properties, duration, callback)
+    local tweenInfo = TweenInfo.new(
+        duration or self.AnimationSpeed,
+        animations.EasingStyles.Sine,
+        animations.EasingDirections.Out
+    )
+    
+    local tween = TweenService:Create(instance, tweenInfo, properties)
+    tween:Play()
+    
+    if callback then
+        tween.Completed:Connect(callback)
+    end
+    
+    return tween
+end
+
+function LuxUI:MakeDraggable(frame, handle)
+    handle = handle or frame
+    
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
+function LuxUI:ApplyTheme(themeName)
+    if not themes[themeName] then return end
+    
+    self.Theme = themeName
+    
+    -- Apply theme to all UI elements
+    -- (Implementation would iterate through all elements and update colors)
+    -- This is simplified for the example
+    
+    if self.Watermark then
+        self.Watermark.BackgroundColor3 = themes[themeName].Main
+        self.Watermark.UIStroke.Color = themes[themeName].Accent
+        self.Watermark.Label.TextColor3 = themes[themeName].Text
+        self.Watermark.FPS.TextColor3 = themes[themeName].TextDark
+    end
+    
+    -- Apply to other elements similarly...
+end
+
+-- Notification System
+function LuxUI:Notify(options)
+    options = options or {}
+    
+    local notification = Instance.new("Frame")
+    notification.Name = "Notification"
+    notification.BackgroundColor3 = themes[self.Theme].Main
+    notification.Size = UDim2.new(0, 300, 0, 0)
+    notification.Position = UDim2.new(1, -320, 1, -10)
+    notification.AnchorPoint = Vector2.new(1, 1)
+    notification.Parent = self.NotificationHolder
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = notification
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Color = themes[self.Theme].Accent
+    stroke.Thickness = 1
+    stroke.Parent = notification
+    
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Text = options.Title or "Notification"
+    title.Font = Enum.Font.GothamBold
+    title.TextColor3 = themes[self.Theme].Text
+    title.TextSize = 16
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(1, -20, 0, 20)
+    title.Position = UDim2.new(0, 10, 0, 10)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = notification
+    
+    local content = Instance.new("TextLabel")
+    content.Name = "Content"
+    content.Text = options.Content or "This is a notification."
+    content.Font = Enum.Font.GothamSemibold
+    content.TextColor3 = themes[self.Theme].TextDark
+    content.TextSize = 14
+    content.BackgroundTransparency = 1
+    content.Size = UDim2.new(1, -20, 0, 0)
+    content.Position = UDim2.new(0, 10, 0, 35)
+    content.TextXAlignment = Enum.TextXAlignment.Left
+    content.TextYAlignment = Enum.TextYAlignment.Top
+    content.TextWrapped = true
+    content.Parent = notification
+    
+    -- Calculate required height
+    local textHeight = math.ceil(content.TextBounds.Y / 14) * 14
+    content.Size = UDim2.new(1, -20, 0, textHeight)
+    
+    local totalHeight = 50 + textHeight
+    notification.Size = UDim2.new(0, 300, 0, totalHeight)
+    
+    -- Animate in
+    notification.Position = UDim2.new(1, -320, 1, totalHeight + 10)
+    self:Tween(notification, {Position = UDim2.new(1, -320, 1, -10)}, 0.3)
+    
+    -- Auto-close after duration
+    if options.Duration and options.Duration > 0 then
+        task.delay(options.Duration, function()
+            self:Tween(notification, {Position = UDim2.new(1, -320, 1, totalHeight + 10)}, 0.3, function()
+                notification:Destroy()
+            end)
+        end)
+    end
+    
+    -- Close button
+    local close = Instance.new("TextButton")
+    close.Name = "Close"
+    close.Text = "X"
+    close.Font = Enum.Font.GothamBold
+    close.TextColor3 = themes[self.Theme].Text
+    close.TextSize = 14
+    close.BackgroundTransparency = 1
+    close.Size = UDim2.new(0, 20, 0, 20)
+    close.Position = UDim2.new(1, -25, 0, 5)
+    close.Parent = notification
+    
+    close.MouseButton1Click:Connect(function()
+        self:Tween(notification, {Position = UDim2.new(1, -320, 1, totalHeight + 10)}, 0.3, function()
+            notification:Destroy()
+        end)
+    end)
+    
+    return notification
+end
+
+-- Configuration System
+function LuxUI:SaveConfiguration()
+    if not self.ConfigurationSaving.Enabled then return end
+    
+    -- Create folder if it doesn't exist
+    if not isfolder(self.ConfigurationSaving.FolderName) then
+        makefolder(self.ConfigurationSaving.FolderName)
+    end
+    
+    -- Prepare data to save
+    local data = {
+        Flags = self.Flags,
+        Theme = self.Theme,
+        WindowPosition = self.MainWindow.Main.Position
+    }
+    
+    -- Save to file
+    writefile(
+        self.ConfigurationSaving.FolderName .. "/" .. self.ConfigurationSaving.FileName,
+        HttpService:JSONEncode(data)
+    )
+end
+
+function LuxUI:LoadConfiguration()
+    if not self.ConfigurationSaving.Enabled then return end
+    
+    local filePath = self.ConfigurationSaving.FolderName .. "/" .. self.ConfigurationSaving.FileName
+    
+    if isfile(filePath) then
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(filePath))
+        end)
+        
+        if success and data then
+            -- Load flags
+            if data.Flags then
+                for flag, value in pairs(data.Flags) do
+                    if self.Flags[flag] ~= nil then
+                        self.Flags[flag] = value
+                    end
+                end
+            end
+            
+            -- Load theme
+            if data.Theme then
+                self:ApplyTheme(data.Theme)
+            end
+            
+            -- Load window position
+            if data.WindowPosition then
+                self.MainWindow.Main.Position = data.WindowPosition
+            end
+        end
+    end
+end
+
+-- Keybind System
+function LuxUI:BindToKey(keyCode, callback)
+    local connection
+    connection = UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == keyCode and not UserInputService:GetFocusedTextBox() then
+            callback()
+        end
+    end)
+    
+    return connection
+end
+
+-- Example Usage:
+--[[
+local LuxUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/.../LuxUI.lua"))()
+
+local ui = LuxUI.new({
+    ScriptName = "My Cool Script",
+    Theme = "Dark",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MyScriptConfigs",
+        FileName = "config.json"
+    }
+})
+
+local window = ui.MainWindow
+local tab = window:AddTab("Main")
+
+local section = tab:AddSection("Main Section")
+
+section:AddButton({
+    Name = "Click Me!",
+    Callback = function()
+        ui:Notify({
+            Title = "Button Clicked",
+            Content = "You clicked the button!",
+            Duration = 3
+        })
+    end
+})
+
+section:AddToggle({
+    Name = "Enable Feature",
+    Default = false,
+    Callback = function(value)
+        print("Toggle:", value)
+    end,
+    Flag = "FeatureEnabled"
+})
+
+section:AddSlider({
+    Name = "Slider",
+    Min = 0,
+    Max = 100,
+    Default = 50,
+    Precision = 0,
+    Callback = function(value)
+        print("Slider:", value)
+    end,
+    Flag = "SliderValue"
+})
+
+section:AddDropdown({
+    Name = "Options",
+    Options = {"Option 1", "Option 2", "Option 3"},
+    Default = "Option 1",
+    Callback = function(value)
+        print("Dropdown:", value)
+    end,
+    Flag = "SelectedOption"
+})
+
+section:AddKeybind({
+    Name = "Toggle UI",
+    Default = Enum.KeyCode.RightShift,
+    Callback = function(key)
+        print("Keybind:", key)
+    end,
+    Flag = "ToggleKey"
+})
+
+-- Save config when script ends
+game:GetService("UserInputService").WindowFocusReleased:Connect(function()
+    ui:SaveConfiguration()
+end)
+]]
+
+return LuxUI
